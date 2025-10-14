@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Comments</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/login.css}">
+    <!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">-->
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Comments for Post</h2>
+    <a th:href="@{/posts}" class="btn btn-secondary mb-3">Back to Posts</a>
+    <div th:each="comment : ${comments}" class="card mb-3">
+        <div class="card-body">
+            <p class="card-text" th:text="${comment.content}"></p>
+            <p class="card-text"><small>By <span th:text="${comment.authorId}"></span> at <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}"></span></small></p>
+            <form th:if="${#authorization.hasRole('ADMIN') and !comment.isApproved}" th:action="@{/api/v1/comments/{id}/approve(id=${comment.id})}" method="post">
+                <button type="submit" class="btn btn-success">Approve</button>
+            </form>
+        </div>
+    </div>
+    <form th:action="@{/api/v1/comments}" method="post" class="mt-3">
+        <input type="hidden" name="postId" th:value="${postId}">
+        <div class="mb-3">
+            <label for="content" class="form-label">Add Comment</label>
+            <textarea id="content" name="content" class="form-control" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Comment</button>
+    </form>
+</div>
+</body>
+</html>
