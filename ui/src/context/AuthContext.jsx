@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { login } from "../services/authService";
+import { login, register } from "../services/authService";
 
 export const AuthContext = createContext();
 
@@ -22,12 +22,20 @@ export function AuthProvider({ children }) {
         setUser(credentials.username);
     }
 
+    async function registerUser(userData) {
+        const response = await register(userData);
+
+        setToken(response.token);
+        setUser(response.username);
+    }
+
+
     function logoutUser() {
         setToken(null);
         setUser(null);
     }
 
-    const value = { user, token , loginUser, logoutUser };
+    const value = { user, token , loginUser, logoutUser, registerUser };
     return (
         <AuthContext.Provider value={value}>
             {children}

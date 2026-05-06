@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext.jsx";
 
 function RegisterPage() {
     const navigate = useNavigate();
+    const { registerUser } = useContext(AuthContext);
 
     const [formData, setFormData] = useState({
         username: "",
@@ -42,10 +44,17 @@ function RegisterPage() {
         try {
             setLoading(true);
 
-            // TODO: connect to your backend register endpoint
-            console.log("Register data:", formData);
+            // The backend expects: username, email, password
+            const payload = {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password,
+            };
 
-            navigate("/login");
+            await registerUser(payload);
+
+            // After successful register → user is logged in → redirect
+            navigate("/");
         } catch (err) {
             setError(err.message || "Registration failed");
         } finally {
@@ -82,6 +91,7 @@ function RegisterPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Username */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">
                             Username
@@ -97,6 +107,7 @@ function RegisterPage() {
                         />
                     </div>
 
+                    {/* Email */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">
                             Email
@@ -112,6 +123,7 @@ function RegisterPage() {
                         />
                     </div>
 
+                    {/* Password */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">
                             Password
@@ -131,11 +143,12 @@ function RegisterPage() {
                                 onClick={() => setShowPassword((prev) => !prev)}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                             >
-                                {showPassword ? "🙈" : "👁"}
+                                {showPassword ? "×" : "👁"}
                             </button>
                         </div>
                     </div>
 
+                    {/* Confirm Password */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">
                             Confirm Password
@@ -155,11 +168,12 @@ function RegisterPage() {
                                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                             >
-                                {showConfirmPassword ? "🙈" : "👁"}
+                                {showConfirmPassword ? "×" : "👁"}
                             </button>
                         </div>
                     </div>
 
+                    {/* Terms */}
                     <label className="flex items-start gap-3 text-sm text-gray-600">
                         <input
                             type="checkbox"
@@ -168,11 +182,10 @@ function RegisterPage() {
                             onChange={handleChange}
                             className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span>
-              I agree to the terms and conditions.
-            </span>
+                        <span>I agree to the terms and conditions.</span>
                     </label>
 
+                    {/* Submit */}
                     <button
                         type="submit"
                         disabled={loading}

@@ -15,3 +15,20 @@ export async function login(credentials) {
 
     return response.json();
 }
+
+export async function register(userData) {
+    const response = await fetch(`${BASE_URL}/register`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(userData)
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Registration failed");
+    }
+
+    return response.json();
+}

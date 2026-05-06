@@ -128,7 +128,9 @@ function LoginPage() {
                             Remember me
                         </label>
 
-                        <Link className="text-blue-600 text-sm font-medium hover:underline">
+                        <Link
+                            to="/forgot-password"
+                            className="text-blue-600 text-sm font-medium hover:underline">
                             Forgot password?
                         </Link>
                     </div>
