@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<h1>Dashboard Page</h1>
+
+<p>If you can see this, dashboard.html is loading correctly.</p>
+
+
+<button onclick="logout()">Logout</button>
+
+<script>
+    // Redirect to login if there's no token
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/auth/login.html";
+    }
+</script>
+
+<script src="/js/api.js"></script>
+</body>
+</html>

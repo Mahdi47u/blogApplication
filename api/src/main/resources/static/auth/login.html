@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+<h1>Login Page</h1>
+
+<p>If you can see this, login.html is loading correctly.</p>
+
+<form id="loginForm">
+    <input id="username" type="text" placeholder="Username" required />
+    <input id="password" type="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+</form>
+
+<a href="/auth/register.html">Go to Register</a>
+
+<script src="/js/api.js"></script>
+
+<script>
+    const form = document.getElementById("loginForm");
+
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const data = await login(username, password);
+
+            // save JWT token
+            localStorage.setItem("token", data.token);
+
+            // redirect to dashboard
+            window.location.href = "/dashboard/dashboard.html";
+
+        } catch (error) {
+            alert("Login failed: " + error.message);
+        }
+    });
+</script>
+
+
+</body>
+</html>

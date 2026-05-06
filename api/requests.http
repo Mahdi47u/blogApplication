@@ -1,0 +1,58 @@
+@token = eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJtb2VpbiIsImlhdCI6MTc3Nzc5NTgzOSwiZXhwIjoxNzc3ODgyMjM5fQ.KNJKeq5Bdthz8jDbPK7lYW2nL9S_wfXiEv-U6ZOI30gqdDNiUYGvWjVl_jwDDTAT
+### GET request to example server
+GET http://localhost:8080/api/users
+
+###
+
+### LOGIN (Get JWT)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "moein",
+  "password": "admin7710"
+}
+
+### Get my user profile
+GET http://localhost:8080/api/users/me
+Authorization: Bearer {{token}}
+
+### Update my bio
+PUT http://localhost:8080/api/users/me/bio
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "bio": "Hello, I am Mahdi from IntelliJ REST client!"
+}
+
+### Upload profile picture
+POST http://localhost:8080/api/users/me/profile-picture
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< C:\Users\Mahdi_PC\Desktop\tum tum tum sahor.jpg
+--WebAppBoundary--
+
+### Change password
+PUT http://localhost:8080/api/users/me/password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "oldPassword": "admin8810",
+  "newPassword": "admin7710"
+}
+
+### ADMIN: Get all users
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{token}}
+
+### ADMIN: Update user role
+PUT http://localhost:8080/api/superadmin/users/1/role/ADMIN
+Authorization: Bearer {{token}}
+Content-Type: application/json

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<h1>Register Page</h1>
+
+<p>If you can see this, register.html is loading correctly.</p>
+
+<a href="/auth/login.html">Back to Login</a>
+
+<form id="registerForm">
+    <input id="username" type="text" placeholder="Username" required />
+    <input id="password" type="password" placeholder="Password" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <button type="submit">Register</button>
+</form>
+
+
+<script src="/js/api.js"></script>
+
+<script>
+    const form = document.getElementById("registerForm");
+
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
+
+        try {
+            await registerUser(username, password , email);
+
+            alert("Registration successful. Please login.");
+
+            window.location.href = "/auth/login.html";
+
+        } catch (error) {
+            alert("Registration failed: " + error.message);
+        }
+    });
+</script>
+
+
+</body>
+</html>
