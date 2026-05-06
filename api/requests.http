@@ -1,4 +1,4 @@
-@token = eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJtb2VpbiIsImlhdCI6MTc3Nzc5NTgzOSwiZXhwIjoxNzc3ODgyMjM5fQ.KNJKeq5Bdthz8jDbPK7lYW2nL9S_wfXiEv-U6ZOI30gqdDNiUYGvWjVl_jwDDTAT
+@token = eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJtb2VpbiIsImlhdCI6MTc3ODA3MzA4NSwiZXhwIjoxNzc4MTU5NDg1fQ.6y28UcmIUJ5YKhAeCaatNlHXhqGzkTCq9PcDvY3FQys4C5lGlw7tD7zsiTZ3jpUX
 ### GET request to example server
 GET http://localhost:8080/api/users
 

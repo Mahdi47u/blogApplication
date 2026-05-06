@@ -132,6 +132,8 @@ p {
   margin: 0;
 }
 
+
+
 /* ---------------------------------------
    Code Elements
 --------------------------------------- */
@@ -151,6 +153,14 @@ code {
   background: var(--code-bg);
 }
 
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* ---------------------------------------
    Animations
 --------------------------------------- */
@@ -162,4 +172,28 @@ code {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out both;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+
+input, textarea {
+  color-scheme: light !important;
 }
