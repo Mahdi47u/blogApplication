@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createPost } from "../services/postService";
+import { createPost } from "../../services/postService.js";
 import { useNavigate, Link } from "react-router-dom";
 
 function CreatePostPage() {

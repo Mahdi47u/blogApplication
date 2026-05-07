@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import { login, register } from "../services/authService";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {

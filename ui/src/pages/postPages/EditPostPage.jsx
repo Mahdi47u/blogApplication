@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPostById, updatePost } from "../services/postService";
+import { getPostById, updatePost } from "../../services/postService.js";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 function EditPostPage() {

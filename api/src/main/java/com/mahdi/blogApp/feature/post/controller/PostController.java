@@ -73,6 +73,18 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me")
+    public ResponseEntity<Page<PostModel>> getMyPosts(Pageable pageable) {
+        return ResponseEntity.ok(postService.getMyPosts(pageable));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me/count")
+    public ResponseEntity<Long> getMyPostCount() {
+        return ResponseEntity.ok(postService.getMyPostCount());
+    }
+
 //    @PostMapping("/{postId}/thumbnail")
 //    public ResponseEntity<PostModel> uploadThumbnail(
 //            @PathVariable Long postId,

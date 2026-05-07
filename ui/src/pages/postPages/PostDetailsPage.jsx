@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { deletePost } from "../services/postService.js";
+import { deletePost } from "../../services/postService.js";
 
 function PostDetailsPage() {
     const { id } = useParams();

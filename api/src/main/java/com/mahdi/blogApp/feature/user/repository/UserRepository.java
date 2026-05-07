@@ -1,5 +1,6 @@
 package com.mahdi.blogApp.feature.user.repository;
 
+import com.mahdi.blogApp.feature.user.entity.Role;
 import com.mahdi.blogApp.feature.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,5 +14,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     boolean existsByUsername(String username);
 
+    long countByRolesContaining(Role role);
 
 }

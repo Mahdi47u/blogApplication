@@ -13,5 +13,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
     Page<PostEntity> findByAuthorId(Long authorId, Pageable pageable);
 
+    long countByAuthorId(Long authorId);
+
     Page<PostEntity> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }

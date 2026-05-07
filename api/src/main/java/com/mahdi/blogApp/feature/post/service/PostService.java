@@ -110,6 +110,20 @@ public class PostService {
                 .map(postMapper::toModel);
     }
 
+    public Page<PostModel> getMyPosts(Pageable pageable) {
+
+        UserEntity currentUser = getCurrentUser();
+
+        return postRepository
+                .findByAuthorId(currentUser.getId(), pageable)
+                .map(postMapper::toModel);
+    }
+
+    public long getMyPostCount() {
+        UserEntity currentUser = getCurrentUser();
+        return postRepository.countByAuthorId(currentUser.getId());
+    }
+
     // ============================================================
     // Security Helpers
     // ============================================================
