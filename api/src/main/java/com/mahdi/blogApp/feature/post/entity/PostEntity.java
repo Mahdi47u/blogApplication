@@ -1,11 +1,14 @@
 package com.mahdi.blogApp.feature.post.entity;
 
 import com.mahdi.blogApp.feature.BaseEntity;
+import com.mahdi.blogApp.feature.comment.entity.CommentEntity;
 import com.mahdi.blogApp.feature.user.entity.UserEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 
 @Entity
@@ -28,5 +31,8 @@ public class PostEntity extends BaseEntity {
     @Column(nullable = false)
     private String category;
 
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<CommentEntity> comments;
 }
 
