@@ -27,5 +27,6 @@ public class PostEntity extends BaseEntity {
 
     @Column(nullable = false)
     private String category;
+
 }
 

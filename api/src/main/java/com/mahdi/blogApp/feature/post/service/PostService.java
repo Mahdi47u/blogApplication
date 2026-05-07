@@ -124,6 +124,8 @@ public class PostService {
         return postRepository.countByAuthorId(currentUser.getId());
     }
 
+
+
     // ============================================================
     // Security Helpers
     // ============================================================
