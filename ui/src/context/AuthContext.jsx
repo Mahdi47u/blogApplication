@@ -6,37 +6,53 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem("token"));
-    const [user, setUser] = useState(() => localStorage.getItem("username"));
+    const [user, setUser] = useState(() => {
+        const saved = localStorage.getItem("user");
+        return saved ? JSON.parse(saved) : null;
+    });
 
     useEffect(() => {
         if (token) localStorage.setItem("token", token);
         else localStorage.removeItem("token");
 
-        if (user) localStorage.setItem("username", user);
-        else localStorage.removeItem("username");
+        if (user) localStorage.setItem("user", JSON.stringify(user));
+        else localStorage.removeItem("user");
     }, [token, user]);
 
     async function loginUser(credentials) {
-        const response = await login(credentials);
-
+        const response = await login(credentials);  // returns token
         setToken(response.token);
-        setUser(credentials.username);
+
+        // fetch full user data
+        const meRes = await fetch("http://localhost:8080/api/users/me", {
+            headers: { Authorization: `Bearer ${response.token}` }
+        });
+
+        const userData = await meRes.json();
+
+        setUser(userData);
     }
 
-    async function registerUser(userData) {
-        const response = await register(userData);
-
+    async function registerUser(data) {
+        const response = await register(data); // returns token
         setToken(response.token);
-        setUser(response.username);
-    }
 
+        const meRes = await fetch("http://localhost:8080/api/users/me", {
+            headers: { Authorization: `Bearer ${response.token}` }
+        });
+
+        const userData = await meRes.json();
+
+        setUser(userData);
+    }
 
     function logoutUser() {
         setToken(null);
         setUser(null);
     }
 
-    const value = { user, token , loginUser, logoutUser, registerUser };
+    const value = { user, token, loginUser, logoutUser, registerUser };
+
     return (
         <AuthContext.Provider value={value}>
             {children}
