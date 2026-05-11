@@ -1,7 +1,14 @@
-package com.mahdi.blogApp.feature.comment.dto;
+package com.mahdi.blogApp.feature.comment.model.dto;
+
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class CommentResponse {
 
     private Long id;
@@ -16,7 +23,7 @@ public class CommentResponse {
 
     private boolean edited;
 
-    private int likeCount;
+    private long likeCount;
 
     private Long parentId;
 }

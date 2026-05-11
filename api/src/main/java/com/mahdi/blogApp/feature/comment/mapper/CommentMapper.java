@@ -9,11 +9,7 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CommentMapper {
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "text", source = "text")
-    @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "author", source = "user.username")
-    @Mapping(target = "likeCount", source = "likeCount")
-    @Mapping(target = "edited", source = "edited")
+    @Mapping(target = "authorId", source = "user.username")
+    @Mapping(target = "parentId", source = "parent.id")
     CommentModel toModel(CommentEntity commentEntity);
 }

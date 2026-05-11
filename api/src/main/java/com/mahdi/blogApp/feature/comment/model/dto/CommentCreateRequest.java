@@ -1,5 +1,12 @@
-package com.mahdi.blogApp.feature.comment.dto;
+package com.mahdi.blogApp.feature.comment.model.dto;
 
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class CommentCreateRequest {
 
     private Long postId;

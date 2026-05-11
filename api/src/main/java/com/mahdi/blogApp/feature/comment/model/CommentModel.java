@@ -10,12 +10,19 @@ import java.time.LocalDateTime;
 @ToString
 public class CommentModel {
 
-    private String id;
-    private String text;
-    private String author;
-    private LocalDateTime createdAt;
-    private long likeCount;
-    private boolean edited;
-    private String parentId;
+    private Long id;
 
+    private String text;
+
+    private Long authorId;
+
+    private String authorUsername;
+
+    private LocalDateTime createdAt;
+
+    private long likeCount;
+
+    private boolean edited;
+
+    private Long parentId;
 }
