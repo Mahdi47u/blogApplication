@@ -19,16 +19,16 @@ public class CommentController {
 
     private final CommentService commentService;
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
     public CommentModel createComment(
             @RequestBody CommentCreateRequest request
     ) {
         return commentService.createComment(request);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{commentId}")
-    @PreAuthorize("hasRole('USER')")
     public CommentModel updateComment(
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest request
@@ -36,14 +36,15 @@ public class CommentController {
         return commentService.updateComment(commentId, request);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{commentId}")
-    @PreAuthorize("hasRole('USER')")
     public void deleteComment(
             @PathVariable Long commentId
     ) {
         commentService.deleteComment(commentId);
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/post/{postId}")
     public Page<CommentModel> getRootComments(
             @PathVariable Long postId,
@@ -52,7 +53,7 @@ public class CommentController {
         return commentService.getRootComments(postId, pageable);
     }
 
-
+    @PreAuthorize("permitAll()")
     @GetMapping("/{commentId}/replies")
     public Page<CommentModel> getReplies(
             @PathVariable Long commentId,

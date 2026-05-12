@@ -1,4 +1,5 @@
-@token = eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJtb2VpbiIsImlhdCI6MTc3ODA3MzA4NSwiZXhwIjoxNzc4MTU5NDg1fQ.6y28UcmIUJ5YKhAeCaatNlHXhqGzkTCq9PcDvY3FQys4C5lGlw7tD7zsiTZ3jpUX
+@token = eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJtb2VpbiIsImlhdCI6MTc3ODU3MTkyNCwiZXhwIjoxNzc4NjU4MzI0fQ.pWfzszJXEWPq5AqhwYL6XluUY7ILvav5bsg3fvmqCQaoLHw44XIUFH-MQmfjOGwL
+
 ### GET request to example server
 GET http://localhost:8080/api/users
 
@@ -56,3 +57,87 @@ Authorization: Bearer {{token}}
 PUT http://localhost:8080/api/superadmin/users/1/role/ADMIN
 Authorization: Bearer {{token}}
 Content-Type: application/json
+
+###
+### =========================================================
+### CREATE ROOT COMMENT
+### =========================================================
+
+POST http://localhost:8080/api/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "postId": 1,
+  "text": "This post is really helpful!"
+}
+
+###
+### =========================================================
+### CREATE REPLY
+### =========================================================
+
+POST http://localhost:8080/api/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "postId": 1,
+  "parentId": 1,
+  "text": "I agree with your comment!"
+}
+
+###
+
+### =========================================================
+### GET ROOT COMMENTS (PAGINATED)
+### =========================================================
+
+GET http://localhost:8080/api/comments/post/1?page=0&size=5&sort=createdAt,desc
+
+###
+
+### Expected Response
+
+### =========================================================
+### GET REPLIES
+### =========================================================
+
+GET http://localhost:8080/api/comments/1/replies?page=0&size=5&sort=createdAt,asc
+
+###
+### =========================================================
+### UPDATE COMMENT
+### =========================================================
+
+PUT http://localhost:8080/api/comments/1
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "text": "Updated comment text!"
+}
+
+###
+### =========================================================
+### DELETE COMMENT
+### =========================================================
+
+DELETE http://localhost:8080/api/comments/1
+Authorization: Bearer YOUR_JWT_TOKEN
+
+###
+### =========================================================
+### LIKE COMMENT
+### =========================================================
+
+POST http://localhost:8080/api/comment-likes/2
+Authorization: Bearer YOUR_JWT_TOKEN
+
+###
+### =========================================================
+### UNLIKE COMMENT
+### =========================================================
+
+DELETE http://localhost:8080/api/comment-likes/2
+Authorization: Bearer YOUR_JWT_TOKEN
