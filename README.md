@@ -40,20 +40,10 @@ A full-stack blog platform built with Spring Boot and React featuring JWT authen
 
 
 # Screenshots
-
-![image-20260513000038450](C:\Users\Mahdi_PC\AppData\Roaming\Typora\typora-user-images\image-20260513000038450.png)
-
-
-
-![image-20260513000121154](C:\Users\Mahdi_PC\AppData\Roaming\Typora\typora-user-images\image-20260513000121154.png)
-
-
-
-![image-20260513000218715](C:\Users\Mahdi_PC\AppData\Roaming\Typora\typora-user-images\image-20260513000218715.png)
-
-
-
-![image-20260513000244059](C:\Users\Mahdi_PC\AppData\Roaming\Typora\typora-user-images\image-20260513000244059.png)
+![Home Page](screenshots/home_page.png)
+![Home Page2](screenshots/home_page2.png)
+![Post Details](screenshots/post_details.png)
+![Login Page](screenshots/login_page.png)
 
 
 
