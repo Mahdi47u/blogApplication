@@ -37,7 +37,7 @@ export default function CommentSection({ postId }) {
 
             <div className="space-y-4 mt-6">
                 {comments.map(comment => (
-                    <CommentItem key={comment.id} comment={comment} />
+                    <CommentItem key={comment.id} comment={comment} postId={postId} />
                 ))}
             </div>
 

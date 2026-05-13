@@ -5,7 +5,7 @@ import ReplyList from "./ReplyList";
 import CommentLikeButton from "./CommentLikeButton";
 import { deleteComment } from "../../services/commentService";
 
-export default function CommentItem({ comment }) {
+export default function CommentItem({ comment, postId }) {
     const { user } = useContext(AuthContext);
     const [showReply, setShowReply] = useState(false);
     const [showReplies, setShowReplies] = useState(false);
@@ -62,7 +62,7 @@ export default function CommentItem({ comment }) {
             {showReply && (
                 <CommentForm
                     parentId={comment.id}
-                    postId={null}
+                    postId={postId}
                     onSuccess={() => {
                         setShowReply(false);
                         setShowReplies(true);
