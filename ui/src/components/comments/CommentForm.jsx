@@ -1,20 +1,36 @@
+// CommentForm.jsx
+
 import { useState } from "react";
 import { createComment } from "../../services/commentService";
 
-export default function CommentForm({ postId, parentId, onSuccess }) {
+export default function CommentForm({
+                                        postId,
+                                        parentId,
+                                        onSuccess
+                                    }) {
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(e) {
         e.preventDefault();
+
         if (!text.trim()) return;
 
         setLoading(true);
-        const comment = await createComment({ postId, text, parentId });
-        setText("");
-        setLoading(false);
 
-        onSuccess?.(comment);
+        try {
+            const comment = await createComment({
+                postId,
+                text,
+                parentId
+            });
+
+            setText("");
+
+            onSuccess?.(comment);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (

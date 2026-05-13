@@ -1,3 +1,4 @@
+
 import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import CommentForm from "./CommentForm";
@@ -7,6 +8,7 @@ import { deleteComment } from "../../services/commentService";
 
 export default function CommentItem({ comment, postId }) {
     const { user } = useContext(AuthContext);
+
     const [showReply, setShowReply] = useState(false);
     const [showReplies, setShowReplies] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
@@ -17,6 +19,7 @@ export default function CommentItem({ comment, postId }) {
 
     async function handleDelete() {
         if (!confirm("Delete this comment?")) return;
+
         await deleteComment(comment.id);
         setIsDeleted(true);
     }
@@ -28,7 +31,9 @@ export default function CommentItem({ comment, postId }) {
                     {comment.authorUsername}
                 </div>
 
-                <div className="mt-1">{comment.text}</div>
+                <div className="mt-1">
+                    {comment.text}
+                </div>
 
                 <div className="text-xs text-gray-500 mt-1">
                     {new Date(comment.createdAt).toLocaleString()}
@@ -70,7 +75,12 @@ export default function CommentItem({ comment, postId }) {
                 />
             )}
 
-            {showReplies && <ReplyList commentId={comment.id} />}
+            {showReplies && (
+                <ReplyList
+                    commentId={comment.id}
+                    postId={postId}
+                />
+            )}
         </div>
     );
 }
