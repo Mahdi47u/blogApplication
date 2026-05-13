@@ -20,8 +20,7 @@ public class PostEntity extends BaseEntity {
     @Column(nullable = false, length = 150)
     private String title;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(columnDefinition = "text")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

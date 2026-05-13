@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { deletePost } from "../../services/postService.js";
+import { getPostById, deletePost } from "../../services/postService";
+import { AuthContext } from "../../context/AuthContext";
+import CommentSection from "../../components/comments/CommentSection";
 
 function PostDetailsPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
 
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -13,10 +16,7 @@ function PostDetailsPage() {
     useEffect(() => {
         async function fetchPost() {
             try {
-                const response = await fetch(`http://localhost:8080/api/posts/${id}`);
-                if (!response.ok) throw new Error("Failed to load post");
-
-                const data = await response.json();
+                const data = await getPostById(id);
                 setPost(data);
             } catch (err) {
                 console.error(err);
@@ -48,6 +48,7 @@ function PostDetailsPage() {
         return <p className="text-gray-600 px-4 py-10">Post not found.</p>;
 
     const formattedDate = new Date(post.createdAt).toLocaleDateString();
+    const isOwner = user?.id === post.authorId;
 
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-10">
@@ -62,7 +63,7 @@ function PostDetailsPage() {
                     ← Back to Home
                 </Link>
 
-                {/* Glass Card */}
+                {/* Post Card */}
                 <div className="
                     bg-white/60 backdrop-blur-xl
                     border border-white/40 shadow-xl
@@ -92,31 +93,41 @@ function PostDetailsPage() {
                         {post.content}
                     </p>
 
-                    {/* Buttons */}
-                    <div className="flex items-center gap-3 mt-10">
-                        <Link
-                            to={`/posts/${id}/edit`}
-                            className="
-                                px-5 py-2 rounded-xl font-medium text-white
-                                bg-indigo-600 hover:bg-indigo-700
-                                transition shadow-md
-                            "
-                        >
-                            Edit
-                        </Link>
+                    {/* Owner Actions */}
+                    {isOwner && (
+                        <div className="flex items-center gap-3 mt-10">
+                            <Link
+                                to={`/posts/${id}/edit`}
+                                className="
+                                    px-5 py-2 rounded-xl font-medium text-white
+                                    bg-indigo-600 hover:bg-indigo-700
+                                    transition shadow-md
+                                "
+                            >
+                                Edit
+                            </Link>
 
-                        <button
-                            onClick={handleDelete}
-                            className="
-                                px-5 py-2 rounded-xl font-medium
-                                bg-red-500 text-white hover:bg-red-600
-                                transition shadow-md
-                            "
-                        >
-                            Delete
-                        </button>
-                    </div>
+                            <button
+                                onClick={handleDelete}
+                                className="
+                                    px-5 py-2 rounded-xl font-medium
+                                    bg-red-500 text-white hover:bg-red-600
+                                    transition shadow-md
+                                "
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    )}
                 </div>
+
+                <hr className="my-12 border-gray-200" />
+
+                {/* COMMENTS SECTION */}
+                <div className="mt-12">
+                    <CommentSection postId={post.id} />
+                </div>
+
             </div>
         </div>
     );

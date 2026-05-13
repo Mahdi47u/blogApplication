@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAllPosts } from "../services/postService";
-import PostCard from "../components/PostCard";
+import PostCard from "../components/post/PostCard.jsx";
 
 function HomePage() {
     const [posts, setPosts] = useState([]);

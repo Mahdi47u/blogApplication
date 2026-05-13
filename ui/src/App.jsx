@@ -39,8 +39,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 
 // Auth / Utils
-import RequireAuth from "./components/RequireAuth";
-import RequireAdmin from "./components/RequireAdmin";
+import RequireAuth from "./components/auth/RequireAuth.jsx";
+import RequireAdmin from "./components/auth/RequireAdmin.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage";

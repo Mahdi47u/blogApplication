@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
-import { apiFetch } from "../utils/api";
+import { AuthContext } from "../../context/AuthContext.jsx";
+import { apiFetch } from "../../utils/api.js";
 import { Navigate, Outlet } from "react-router-dom";
 
 export default function RequireAdmin() {
