@@ -40,10 +40,10 @@ A full-stack blog platform built with Spring Boot and React featuring JWT authen
 
 
 # Screenshots
-![Home Page](screenshots/home_page.png)
-![Home Page2](screenshots/home_page2.png)
-![Post Details](screenshots/post_details.png)
-![Login Page](screenshots/login_page.png)
+![Home Page](uploads/screenshots/home_page.png)
+![Home Page2](uploads/screenshots/home_page2.png)
+![Post Details](uploads/screenshots/post_details.png)
+![Login Page](uploads/screenshots/login_page.png)
 
 
 
