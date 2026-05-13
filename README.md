@@ -220,7 +220,7 @@ http://localhost:8080
 Navigate to the frontend directory:
 
 ```bash
-cd frontend
+cd ui/
 ```
 
 Install dependencies:
