@@ -54,6 +54,7 @@ import ProfilePage from "./pages/profile/ProfilePage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsersPage from "./pages/admin/AdminUsersPage.jsx";
 import AdminPostsPage from "./pages/admin/AdminPostsPage.jsx";
+import CategoriesPage from "./pages/admin/CategoriesPage";
 
 function App() {
     return (
@@ -81,6 +82,7 @@ function App() {
 
                     {/* ADMIN ROUTES */}
                     <Route element={<RequireAdmin />}>
+                        <Route path="/admin/categories" element={<CategoriesPage />} />
                         <Route path="admin/dashboard" element={<AdminDashboard />} />
                         <Route path="admin/users" element={<AdminUsersPage />} />
                         <Route path="admin/posts" element={<AdminPostsPage />} />
