@@ -1,9 +1,8 @@
 package com.mahdi.blogApp.feature.user.controller;
 
-import com.mahdi.blogApp.feature.post.model.PostModel;
+import com.mahdi.blogApp.feature.post.model.PostResponse;
 import com.mahdi.blogApp.feature.post.service.PostService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +15,21 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminPostController {
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
     @GetMapping
-    public ResponseEntity<Page<PostModel>> getAllPosts(Pageable pageable) {
-        return ResponseEntity.ok(postService.getAllPosts(pageable));
+    public ResponseEntity<Page<PostResponse>> getAllPosts(Pageable pageable) {
+
+        return ResponseEntity.ok(
+                postService.getAllPosts(pageable)
+        );
     }
 
     @DeleteMapping("/{id}")
-    public void deletePost(@PathVariable Long id) {
-        postService.deletePost(id);
-    }
+    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
 
+        postService.deletePost(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

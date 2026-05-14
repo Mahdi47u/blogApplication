@@ -1,38 +1,57 @@
 package com.mahdi.blogApp.feature.post.validator;
 
-import com.mahdi.blogApp.feature.post.model.PostModel;
+import com.mahdi.blogApp.feature.post.model.PostCreateRequest;
+import com.mahdi.blogApp.feature.post.model.PostUpdateRequest;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PostValidator {
 
-    public void createOrUpdatePost(PostModel postModel) {
+    public void createOrUpdatePost(PostCreateRequest request) {
 
-        if (postModel == null) {
+        if (request == null) {
             throw new IllegalArgumentException("Post data is required");
         }
 
-        if (postModel.getTitle() == null || postModel.getTitle().isBlank()) {
+        validateTitle(request.getTitle());
+        validateContent(request.getContent());
+        validateCategories(request.getCategoryIds());
+    }
+
+    public void createOrUpdatePost(PostUpdateRequest request) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("Post data is required");
+        }
+
+        validateTitle(request.getTitle());
+        validateContent(request.getContent());
+        validateCategories(request.getCategoryIds());
+    }
+
+    private void validateTitle(String title) {
+
+        if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Title is required");
         }
 
-        if (postModel.getTitle().length() > 150) {
+        if (title.length() > 150) {
             throw new IllegalArgumentException("Title cannot exceed 150 characters");
         }
+    }
 
-        if (postModel.getContent() == null || postModel.getContent().isBlank()) {
+    private void validateContent(String content) {
+
+        if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("Content is required");
         }
+    }
 
-        if (postModel.getCategory() == null || postModel.getCategory().isBlank()) {
-            throw new IllegalArgumentException("Category is required");
+    private void validateCategories(java.util.Set<Long> categoryIds) {
+
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            throw new IllegalArgumentException("At least one category is required");
         }
-
-        if (postModel.getCategory().length() > 50) {
-            throw new IllegalArgumentException("Category too long");
-        }
-
-
     }
 
     public void deletePost(Long postId) {

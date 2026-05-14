@@ -1,8 +1,12 @@
 package com.mahdi.blogApp.feature.post.service;
 
+import com.mahdi.blogApp.feature.category.entity.CategoryEntity;
+import com.mahdi.blogApp.feature.category.repository.CategoryRepository;
+import com.mahdi.blogApp.feature.post.model.PostCreateRequest;
+import com.mahdi.blogApp.feature.post.model.PostResponse;
+import com.mahdi.blogApp.feature.post.model.PostUpdateRequest;
 import com.mahdi.blogApp.feature.post.entity.PostEntity;
 import com.mahdi.blogApp.feature.post.mapper.PostMapper;
-import com.mahdi.blogApp.feature.post.model.PostModel;
 import com.mahdi.blogApp.feature.post.repository.PostRepository;
 import com.mahdi.blogApp.feature.post.validator.PostValidator;
 import com.mahdi.blogApp.feature.user.entity.Role;
@@ -15,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -25,53 +30,50 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostValidator postValidator;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
-    // ============================================================
-    // Create Post
-    // ============================================================
-    public PostModel createPost(PostModel postModel) {
+    public PostResponse createPost(PostCreateRequest request) {
 
-        postValidator.createOrUpdatePost(postModel);
+        postValidator.createOrUpdatePost(request);
 
-        // authorId from the model is IGNORED for safety
         UserEntity currentUser = getCurrentUser();
 
-        // map model → entity
-        PostEntity postEntity = postMapper.toEntity(postModel);
+        Set<CategoryEntity> categories =
+                new HashSet<>(categoryRepository.findAllById(request.getCategoryIds()));
 
-        // set real authenticated author
+        PostEntity postEntity = new PostEntity();
+        postEntity.setTitle(request.getTitle());
+        postEntity.setContent(request.getContent());
+        postEntity.setCategories(categories);
         postEntity.setAuthor(currentUser);
 
         PostEntity savedPost = postRepository.save(postEntity);
-        return postMapper.toModel(savedPost);
+
+        return postMapper.toResponse(savedPost);
     }
 
-    // ============================================================
-    // Update Post
-    // ============================================================
-    public PostModel updatePost(Long postId, PostModel postModel) {
+    public PostResponse updatePost(Long postId, PostUpdateRequest request) {
 
-        postValidator.createOrUpdatePost(postModel);
+        postValidator.createOrUpdatePost(request);
 
         PostEntity existingPost =
                 postRepository.findById(postId)
                         .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // check permission
         ensureUserCanModifyPost(existingPost);
 
-        // apply updates
-        existingPost.setTitle(postModel.getTitle());
-        existingPost.setContent(postModel.getContent());
-        existingPost.setCategory(postModel.getCategory());
+        Set<CategoryEntity> categories =
+                new HashSet<>(categoryRepository.findAllById(request.getCategoryIds()));
+
+        existingPost.setTitle(request.getTitle());
+        existingPost.setContent(request.getContent());
+        existingPost.setCategories(categories);
 
         PostEntity updated = postRepository.save(existingPost);
-        return postMapper.toModel(updated);
+
+        return postMapper.toResponse(updated);
     }
 
-    // ============================================================
-    // Delete Post
-    // ============================================================
     public void deletePost(Long postId) {
 
         postValidator.deletePost(postId);
@@ -79,58 +81,58 @@ public class PostService {
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // check permission
         ensureUserCanModifyPost(post);
 
         postRepository.delete(post);
     }
 
-    // ============================================================
-    // Getters
-    // ============================================================
-    public PostModel getPostById(Long postId) {
+    public PostResponse getPostById(Long postId) {
+
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        return postMapper.toModel(post);
+        return postMapper.toResponse(post);
     }
 
-    public Page<PostModel> getPostsByAuthor(Long authorId, Pageable pageable) {
-        return postRepository.findByAuthorId(authorId, pageable)
-                .map(postMapper::toModel);
+    public Page<PostResponse> getPostsByAuthor(Long authorId, Pageable pageable) {
+
+        return postRepository
+                .findByAuthorId(authorId, pageable)
+                .map(postMapper::toResponse);
     }
 
-    public Page<PostModel> getPostsByCategory(String category, Pageable pageable) {
-        return postRepository.findByCategory(category, pageable)
-                .map(postMapper::toModel);
+    public Page<PostResponse> getPostsByCategory(String categoryName, Pageable pageable) {
+
+        return postRepository
+                .findByCategories_Name(categoryName, pageable)
+                .map(postMapper::toResponse);
     }
 
-    public Page<PostModel> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(pageable)
-                .map(postMapper::toModel);
+    public Page<PostResponse> getAllPosts(Pageable pageable) {
+
+        return postRepository
+                .findAll(pageable)
+                .map(postMapper::toResponse);
     }
 
-    public Page<PostModel> getMyPosts(Pageable pageable) {
+    public Page<PostResponse> getMyPosts(Pageable pageable) {
 
         UserEntity currentUser = getCurrentUser();
 
         return postRepository
                 .findByAuthorId(currentUser.getId(), pageable)
-                .map(postMapper::toModel);
+                .map(postMapper::toResponse);
     }
 
     public long getMyPostCount() {
+
         UserEntity currentUser = getCurrentUser();
+
         return postRepository.countByAuthorId(currentUser.getId());
     }
 
-
-
-    // ============================================================
-    // Security Helpers
-    // ============================================================
-
     private UserEntity getCurrentUser() {
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !auth.isAuthenticated()) {
@@ -153,22 +155,18 @@ public class PostService {
         Set<Role> currentRoles = currentUser.getRoles();
         Set<Role> authorRoles = post.getAuthor().getRoles();
 
-        // owner can edit own post
         if (currentId.equals(authorId)) {
             return;
         }
 
-        // SUPERADMIN can edit anything
         if (currentRoles.contains(Role.SUPERADMIN)) {
             return;
         }
 
-        // ADMIN can edit USER posts
         if (currentRoles.contains(Role.ADMIN) && authorRoles.contains(Role.USER)) {
             return;
         }
 
         throw new RuntimeException("You are not allowed to modify this post");
     }
-
 }

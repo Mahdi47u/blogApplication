@@ -1,6 +1,7 @@
 package com.mahdi.blogApp.feature.post.entity;
 
 import com.mahdi.blogApp.feature.BaseEntity;
+import com.mahdi.blogApp.feature.category.entity.CategoryEntity;
 import com.mahdi.blogApp.feature.comment.entity.CommentEntity;
 import com.mahdi.blogApp.feature.user.entity.UserEntity;
 import jakarta.persistence.Entity;
@@ -8,7 +9,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -27,8 +30,13 @@ public class PostEntity extends BaseEntity {
     @JoinColumn(name = "author_id", nullable = false, updatable = false)
     private UserEntity author;
 
-    @Column(nullable = false)
-    private String category;
+    @ManyToMany
+    @JoinTable(
+            name = "post_categories",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<CategoryEntity> categories = new HashSet<>();
 
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)

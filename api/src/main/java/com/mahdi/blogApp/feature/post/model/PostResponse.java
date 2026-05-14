@@ -1,0 +1,29 @@
+package com.mahdi.blogApp.feature.post.model;
+
+
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class PostResponse {
+
+    private Long id;
+
+    private String title;
+
+    private String content;
+
+    private Long authorId;
+
+    private Set<String> categories;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+}
