@@ -1,40 +1,3 @@
-// import { BrowserRouter, Routes, Route } from "react-router-dom";
-// import Layout from "./components/Layout";
-// import HomePage from "./pages/HomePage";
-// import PostDetailsPage from "./pages/postPages/PostDetailsPage.jsx";
-// import CreatePostPage from "./pages/postPages/CreatePostPage.jsx";
-// import EditPostPage from "./pages/postPages/EditPostPage.jsx";
-// import LoginPage from "./pages/loginPages/LoginPage.jsx";
-// import RegisterPage from "./pages/loginPages/RegisterPage.jsx";
-// import ForgotPasswordPage from "./pages/loginPages/ForgotPasswordPage.jsx";
-//
-// function App() {
-//     return (
-//         <BrowserRouter>
-//             <Routes>
-//
-//                 <Route path="/login" element={<LoginPage />} />
-//                 <Route path="/register" element={<RegisterPage />} />
-//                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-//
-//                 <Route path="/" element={<Layout />}>
-//
-//                     <Route index element={<HomePage />} />
-//
-//                     <Route path="posts/:id" element={<PostDetailsPage />} />
-//
-//                     <Route path="create" element={<CreatePostPage />} />
-//
-//                     <Route path="posts/:id/edit" element={<EditPostPage />} />
-//
-//                 </Route>
-//
-//             </Routes>
-//         </BrowserRouter>
-//     );
-// }
-//
-// export default App;
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 
@@ -44,17 +7,19 @@ import RequireAdmin from "./components/auth/RequireAdmin.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage";
-import PostDetailsPage from "./pages/postPages/PostDetailsPage.jsx";
-import CreatePostPage from "./pages/postPages/CreatePostPage.jsx";
-import EditPostPage from "./pages/postPages/EditPostPage.jsx";
-import LoginPage from "./pages/loginPages/LoginPage.jsx";
-import RegisterPage from "./pages/loginPages/RegisterPage.jsx";
-import ForgotPasswordPage from "./pages/loginPages/ForgotPasswordPage.jsx";
+import PostDetailsPage from "./pages/posts/PostDetailsPage.jsx";
+import CreatePostPage from "./pages/posts/CreatePostPage.jsx";
+import EditPostPage from "./pages/posts/EditPostPage.jsx";
+import LoginPage from "./pages/login/LoginPage.jsx";
+import RegisterPage from "./pages/login/RegisterPage.jsx";
+import ForgotPasswordPage from "./pages/login/ForgotPasswordPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsersPage from "./pages/admin/AdminUsersPage.jsx";
 import AdminPostsPage from "./pages/admin/AdminPostsPage.jsx";
 import CategoriesPage from "./pages/admin/CategoriesPage";
+import CategoryPostsPage from "./pages/categories/CategoryPostsPage";
+
 
 function App() {
     return (
@@ -65,6 +30,8 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/categories/:slug" element={<CategoryPostsPage />} />
+
 
                 {/* Layout wrapper */}
                 <Route path="/" element={<Layout />}>

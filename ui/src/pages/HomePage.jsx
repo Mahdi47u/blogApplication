@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAllPosts } from "../services/postService";
-import PostCard from "../components/post/PostCard.jsx";
+import PostCard from "../components/posts/PostCard.jsx";
 
 function HomePage() {
     const [posts, setPosts] = useState([]);
@@ -33,7 +33,8 @@ function HomePage() {
     const filteredPosts = posts.filter((post) => {
         const matchCategory =
             selectedCategory === "All" ||
-            post.category?.toLowerCase() === selectedCategory.toLowerCase();
+            post.categories?.some((cat) => cat.name.toLowerCase() === selectedCategory.toLowerCase()
+            );
 
         const matchSearch =
             post.title?.toLowerCase().includes(search.toLowerCase());

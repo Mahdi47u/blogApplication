@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { getPostById, deletePost } from "../../services/postService";
 import { AuthContext } from "../../context/AuthContext";
 import CommentSection from "../../components/comments/CommentSection";
+import CategoryBadge from "../../components/categories/CategoryBadge";
 
 function PostDetailsPage() {
     const { id } = useParams();
@@ -70,12 +71,18 @@ function PostDetailsPage() {
                     rounded-3xl p-8
                 ">
 
-                    {/* Category */}
-                    {post.category && (
-                        <span className="inline-block mb-4 px-4 py-1 rounded-full text-sm font-medium bg-blue-600/10 text-blue-700">
-                            {post.category}
-                        </span>
+                    {/* Categories */}
+                    {post.categories?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {post.categories.map((category) => (
+                                <CategoryBadge
+                                    key={category.id}
+                                    category={category}
+                                />
+                            ))}
+                        </div>
                     )}
+
 
                     {/* Title */}
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">
