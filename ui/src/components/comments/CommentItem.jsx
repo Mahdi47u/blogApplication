@@ -1,5 +1,6 @@
 
 import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import CommentForm from "./CommentForm";
 import ReplyList from "./ReplyList";
@@ -27,9 +28,12 @@ export default function CommentItem({ comment, postId }) {
     return (
         <div className="border-l pl-4">
             <div className="bg-gray-100 p-3 rounded">
-                <div className="text-sm font-semibold">
+                <Link
+                    to={`/users/${comment.authorId}`}
+                    className="text-sm font-semibold text-slate-800 transition hover:text-blue-600 hover:underline"
+                >
                     {comment.authorUsername}
-                </div>
+                </Link>
 
                 <div className="mt-1">
                     {comment.text}

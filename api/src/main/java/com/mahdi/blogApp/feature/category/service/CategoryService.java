@@ -7,12 +7,17 @@ import com.mahdi.blogApp.feature.category.entity.CategoryEntity;
 import com.mahdi.blogApp.feature.category.mapper.CategoryMapper;
 import com.mahdi.blogApp.feature.category.repository.CategoryRepository;
 import com.mahdi.blogApp.feature.category.validator.CategoryValidator;
+import com.mahdi.blogApp.feature.post.mapper.PostMapper;
+import com.mahdi.blogApp.feature.post.model.PostResponse;
+import com.mahdi.blogApp.feature.post.repository.PostRepository;
 import com.mahdi.blogApp.feature.user.entity.Role;
 import com.mahdi.blogApp.feature.user.entity.UserEntity;
 import com.mahdi.blogApp.feature.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,8 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
     private final CategoryValidator categoryValidator;
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final PostMapper postMapper;
 
     public CategoryResponse create(CategoryCreateRequest request) {
 
@@ -61,6 +68,26 @@ public class CategoryService {
                         new RuntimeException("Category not found"));
 
         return categoryMapper.toResponse(category);
+    }
+
+    public CategoryResponse getBySlug(String slug) {
+
+        CategoryEntity category = categoryRepository.findBySlug(slug)
+                .orElseThrow(() ->
+                        new RuntimeException("Category not found"));
+
+        return categoryMapper.toResponse(category);
+    }
+
+    public Page<PostResponse> getPostsBySlug(String slug, Pageable pageable) {
+
+        CategoryEntity category = categoryRepository.findBySlug(slug)
+                .orElseThrow(() ->
+                        new RuntimeException("Category not found"));
+
+        return postRepository
+                .findByCategories_Id(category.getId(), pageable)
+                .map(postMapper::toResponse);
     }
 
 

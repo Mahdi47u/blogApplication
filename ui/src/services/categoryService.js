@@ -10,6 +10,10 @@ export async function getPostsByCategory(slug) {
     return await apiFetch(`${BASE_URL}/${slug}/posts`);
 }
 
+export async function getCategoryBySlug(slug) {
+    return apiFetch(`${BASE_URL}/slug/${slug}`);
+}
+
 export async function getCategoryById(id) {
     return apiFetch(`${BASE_URL}/${id}`);
 }

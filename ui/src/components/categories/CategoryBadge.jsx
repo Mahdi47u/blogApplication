@@ -2,14 +2,21 @@ import { Link } from "react-router-dom";
 
 export default function CategoryBadge({ category }) {
     const name = typeof category === "string" ? category : category.name;
-    const slug = typeof category === "string" ? category : category.slug;
+    const slug = typeof category === "string" ? slugify(category) : category.slug;
 
     return (
         <Link
             to={`/categories/${slug}`}
-            className="inline-block bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full hover:bg-blue-200 transition"
+            className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
         >
             #{name}
         </Link>
     );
+}
+
+function slugify(value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-");
 }

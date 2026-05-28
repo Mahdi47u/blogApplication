@@ -4,6 +4,7 @@ package com.mahdi.blogApp.feature.user.controller;
 import com.mahdi.blogApp.feature.user.model.ChangePasswordRequest;
 import com.mahdi.blogApp.feature.user.model.BioUpdateRequest;
 import com.mahdi.blogApp.feature.user.model.ProfileResponse;
+import com.mahdi.blogApp.feature.user.model.PublicProfileResponse;
 import com.mahdi.blogApp.feature.user.model.UserModel;
 import com.mahdi.blogApp.feature.user.service.UserManagementService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,11 @@ public class UserController {
     public ProfileResponse getCurrentUser(Authentication auth) {
         String username = auth.getName();
         return userService.getProfileByUsername(username);
+    }
+
+    @GetMapping("/{id}/profile")
+    public ResponseEntity<PublicProfileResponse> getPublicProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getPublicProfileById(id));
     }
 
     // ------------------------------------------------------------

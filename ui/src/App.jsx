@@ -14,6 +14,7 @@ import LoginPage from "./pages/login/LoginPage.jsx";
 import RegisterPage from "./pages/login/RegisterPage.jsx";
 import ForgotPasswordPage from "./pages/login/ForgotPasswordPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
+import PublicProfilePage from "./pages/users/PublicProfilePage.jsx";
 import SavedPostsPage from "./pages/bookmarks/SavedPostsPage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsersPage from "./pages/admin/AdminUsersPage.jsx";
@@ -31,7 +32,6 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/categories/:slug" element={<CategoryPostsPage />} />
 
 
                 {/* Layout wrapper */}
@@ -40,6 +40,8 @@ function App() {
                     {/* Public */}
                     <Route index element={<HomePage />} />
                     <Route path="posts/:id" element={<PostDetailsPage />} />
+                    <Route path="users/:id" element={<PublicProfilePage />} />
+                    <Route path="categories/:slug" element={<CategoryPostsPage />} />
 
                     {/* USER PROTECTED ROUTES */}
                     <Route element={<RequireAuth />}>

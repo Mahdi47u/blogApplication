@@ -103,7 +103,12 @@ function PostDetailsPage() {
                     {/* Metadata */}
                     <div className="flex items-center gap-4 text-gray-500 text-sm mb-8">
                         <span>🕒 {formattedDate}</span>
-                        <span>👤 Author ID: {post.authorId}</span>
+                        <Link
+                            to={`/users/${post.authorId}`}
+                            className="font-medium text-slate-600 transition hover:text-blue-600 hover:underline"
+                        >
+                            By {post.authorName || `User ${post.authorId}`}
+                        </Link>
                     </div>
 
                     <div className="mb-8">

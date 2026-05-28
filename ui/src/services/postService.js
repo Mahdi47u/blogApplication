@@ -66,6 +66,16 @@ export async function getPostById(id) {
     return response.json();
 }
 
+export async function getPostsByAuthor(authorId) {
+    const response = await fetch(`${API_URL}/author/${authorId}`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch author posts");
+    }
+
+    return response.json();
+}
+
 export async function updatePost(id, post) {
     const response = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
