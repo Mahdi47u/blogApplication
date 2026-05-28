@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {getPostById, updatePost} from "../../services/postService";
+import { removePostCover, uploadPostCover } from "../../services/mediaService";
 import {useParams, useNavigate, Link} from "react-router-dom";
 import PostForm from "../../components/posts/PostForm";
 
@@ -34,7 +35,17 @@ function EditPostPage() {
 
     async function handleUpdate(data) {
 
-        await updatePost(id, data);
+        const { coverImage, removeCoverImage, ...postData } = data;
+
+        await updatePost(id, postData);
+
+        if (removeCoverImage) {
+            await removePostCover(id);
+        }
+
+        if (coverImage) {
+            await uploadPostCover(id, coverImage);
+        }
 
         navigate(`/posts/${id}`);
     }

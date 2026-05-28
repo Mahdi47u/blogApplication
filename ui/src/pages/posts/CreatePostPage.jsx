@@ -1,4 +1,5 @@
 import { createPost } from "../../services/postService";
+import { uploadPostCover } from "../../services/mediaService";
 
 import { useNavigate, Link } from "react-router-dom";
 
@@ -10,7 +11,12 @@ function CreatePostPage() {
 
     async function handleCreate(data) {
         try {
-            await createPost(data);
+            const { coverImage, removeCoverImage, ...postData } = data;
+            const createdPost = await createPost(postData);
+
+            if (coverImage) {
+                await uploadPostCover(createdPost.id, coverImage);
+            }
 
             navigate("/");
 

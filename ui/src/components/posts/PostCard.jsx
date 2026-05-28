@@ -13,6 +13,16 @@ function PostCard({ post }) {
                 hover:-translate-y-2
             "
         >
+            {(post.thumbnailUrl || post.coverImageUrl) && (
+                <Link to={`/posts/${post.id}`} className="mb-4 block overflow-hidden rounded-2xl bg-slate-100">
+                    <img
+                        src={post.thumbnailUrl || post.coverImageUrl}
+                        alt={post.title}
+                        className="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                </Link>
+            )}
+
             {/* Category */}
             {post.categories?.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">

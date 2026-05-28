@@ -84,6 +84,15 @@ function PostDetailsPage() {
                         </div>
                     )}
 
+                    {(post.coverImageUrl || post.thumbnailUrl) && (
+                        <div className="mb-6 overflow-hidden rounded-2xl bg-slate-100">
+                            <img
+                                src={post.coverImageUrl || post.thumbnailUrl}
+                                alt={post.title}
+                                className="max-h-[420px] w-full object-cover"
+                            />
+                        </div>
+                    )}
 
                     {/* Title */}
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">

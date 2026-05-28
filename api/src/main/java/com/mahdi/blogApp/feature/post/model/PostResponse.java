@@ -18,6 +18,10 @@ public class PostResponse {
 
     private String content;
 
+    private String coverImageUrl;
+
+    private String thumbnailUrl;
+
     private Long authorId;
 
     private Set<String> categories;

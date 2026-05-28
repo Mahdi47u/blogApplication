@@ -26,6 +26,10 @@ public class PostEntity extends BaseEntity {
     @Column(columnDefinition = "text")
     private String content;
 
+    private String coverImageUrl;
+
+    private String thumbnailUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false, updatable = false)
     private UserEntity author;
