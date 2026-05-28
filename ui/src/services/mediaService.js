@@ -67,3 +67,23 @@ export async function removeProfileImage() {
         throw new Error(text || "Failed to remove profile image");
     }
 }
+
+export async function uploadEditorImage(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${BASE_URL}/editor/images`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Failed to upload editor image");
+    }
+
+    return response.json();
+}

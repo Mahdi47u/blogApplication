@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { apiFetch } from "../../utils/api.js";
 import { removeProfileImage, uploadProfileImage } from "../../services/mediaService.js";
+import { extractRichTextText } from "../../utils/richText.js";
 
 export default function ProfilePage() {
-    const { token } = useContext(AuthContext);
+    const { token, updateUser } = useContext(AuthContext);
 
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
@@ -37,6 +38,7 @@ export default function ProfilePage() {
             ]);
 
             setUser(userData);
+            updateUser(userData);
             setBio(userData.bio || "");
             setProfilePreview(userData.profilePicture || "");
             setPosts(postsData.content || []);
@@ -61,6 +63,7 @@ export default function ProfilePage() {
             });
 
             setUser(updated);
+            updateUser(updated);
             setMessage("Bio updated.");
         } catch (error) {
             console.error("Failed to update bio:", error);
@@ -223,7 +226,7 @@ export default function ProfilePage() {
                                     >
                                         <h3 className="font-medium text-slate-950">{post.title}</h3>
                                         <p className="mt-1 line-clamp-2 text-sm text-slate-600">
-                                            {post.content}
+                                            {extractRichTextText(post.content)}
                                         </p>
                                     </Link>
                                 ))}
@@ -235,7 +238,7 @@ export default function ProfilePage() {
                 <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                     <h2 className="text-lg font-semibold text-slate-950">Profile Picture</h2>
                     <p className="mt-1 text-sm text-slate-600">
-                        Upload a JPG, PNG, or WEBP image. Max 5MB.
+                        Upload a JPG, PNG, or WEBP image. Max 10MB.
                     </p>
 
                     <div className="mt-5">

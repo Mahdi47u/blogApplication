@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
+import { extractRichTextText } from "../../utils/richText";
 
 export default function AdminPostsPage() {
     const [posts, setPosts] = useState([]);
@@ -51,9 +52,11 @@ export default function AdminPostsPage() {
         return posts.filter((post) => {
             if (!normalizedSearch) return true;
 
+            const textContent = extractRichTextText(post.content);
+
             return (
                 post.title?.toLowerCase().includes(normalizedSearch) ||
-                post.content?.toLowerCase().includes(normalizedSearch) ||
+                textContent.toLowerCase().includes(normalizedSearch) ||
                 String(post.authorId || "").includes(normalizedSearch)
             );
         });
@@ -112,7 +115,27 @@ export default function AdminPostsPage() {
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                             {filteredPosts.map((post) => (
-                                <tr key={post.id} className="hover:bg-slate-50">
+                                <PostRow
+                                    key={post.id}
+                                    post={post}
+                                    deletingId={deletingId}
+                                    onDelete={deletePost}
+                                />
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
+        </div>
+    );
+}
+
+function PostRow({ post, deletingId, onDelete }) {
+    const textContent = extractRichTextText(post.content);
+
+    return (
+        <tr className="hover:bg-slate-50">
                                     <td className="px-4 py-4">
                                         <Link
                                             to={`/posts/${post.id}`}
@@ -121,7 +144,7 @@ export default function AdminPostsPage() {
                                             {post.title}
                                         </Link>
                                         <p className="mt-1 line-clamp-2 max-w-xl text-slate-500">
-                                            {post.content || "No content"}
+                                            {textContent || "No content"}
                                         </p>
                                     </td>
                                     <td className="px-4 py-4 text-slate-600">
@@ -162,7 +185,7 @@ export default function AdminPostsPage() {
                                             </Link>
                                             <button
                                                 type="button"
-                                                onClick={() => deletePost(post.id)}
+                                                onClick={() => onDelete(post.id)}
                                                 disabled={deletingId === post.id}
                                                 className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
@@ -171,13 +194,6 @@ export default function AdminPostsPage() {
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </section>
-        </div>
     );
 }
 

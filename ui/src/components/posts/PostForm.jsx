@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import CategoryMultiSelect from "../categories/CategoryMultiSelect";
 import { getCategories } from "../../services/categoryService";
+import RichTextEditor from "../editor/RichTextEditor";
+import { emptyRichTextDocument, stringifyRichTextDocument } from "../../utils/richText";
+
+const emptyContent = stringifyRichTextDocument(emptyRichTextDocument);
 
 function PostForm({initialData = {}, onSubmit, submitText = "Save Post",}) {
 
@@ -9,7 +13,7 @@ function PostForm({initialData = {}, onSubmit, submitText = "Save Post",}) {
     );
 
     const [content, setContent] = useState(
-        initialData.content || ""
+        initialData.content || emptyContent
     );
 
     const [categories, setCategories] = useState([]);
@@ -35,7 +39,7 @@ function PostForm({initialData = {}, onSubmit, submitText = "Save Post",}) {
 
     useEffect(() => {
         setTitle(initialData.title || "");
-        setContent(initialData.content || "");
+        setContent(initialData.content || emptyContent);
         setCoverPreview(initialData.coverImageUrl || initialData.thumbnailUrl || "");
         setRemoveCoverImage(false);
     }, [
@@ -84,7 +88,7 @@ function PostForm({initialData = {}, onSubmit, submitText = "Save Post",}) {
 
             await onSubmit({
                 title,
-                content,
+                content: content || emptyContent,
                 categoryIds: selectedCategories.map(
                     category => category.id
                 ),
@@ -165,20 +169,9 @@ function PostForm({initialData = {}, onSubmit, submitText = "Save Post",}) {
                     Content
                 </label>
 
-                <textarea
+                <RichTextEditor
                     value={content}
-                    onChange={(e) =>
-                        setContent(e.target.value)
-                    }
-                    rows="10"
-                    className="
-                        w-full rounded-xl border border-gray-200
-                        px-4 py-3
-                        focus:ring-2 focus:ring-blue-500
-                        outline-none resize-none
-                    "
-                    placeholder="Write your post..."
-                    required
+                    onChange={setContent}
                 />
             </div>
 
@@ -224,7 +217,7 @@ function PostForm({initialData = {}, onSubmit, submitText = "Save Post",}) {
                 </div>
 
                 <p className="mt-2 text-xs text-gray-500">
-                    JPG, PNG, or WEBP. Max 5MB.
+                    JPG, PNG, or WEBP. Max 10MB. Images are compressed after upload.
                 </p>
             </div>
 

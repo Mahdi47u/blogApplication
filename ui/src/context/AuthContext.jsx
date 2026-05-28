@@ -4,12 +4,24 @@ import { login, register } from "../services/authService";
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
 
+const CURRENT_USER_URL = "http://localhost:8080/api/users/me";
+
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(() => localStorage.getItem("token"));
     const [user, setUser] = useState(() => {
         const saved = localStorage.getItem("user");
         return saved ? JSON.parse(saved) : null;
     });
+
+    useEffect(() => {
+        if (!token) {
+            return;
+        }
+
+        refreshUser(token).catch((error) => {
+            console.error("Failed to refresh current user:", error);
+        });
+    }, [token]);
 
     useEffect(() => {
         if (token) localStorage.setItem("token", token);
@@ -23,27 +35,37 @@ export function AuthProvider({ children }) {
         const response = await login(credentials);  // returns token
         setToken(response.token);
 
-        // fetch full user data
-        const meRes = await fetch("http://localhost:8080/api/users/me", {
-            headers: { Authorization: `Bearer ${response.token}` }
-        });
-
-        const userData = await meRes.json();
-
-        setUser(userData);
+        await refreshUser(response.token);
     }
 
     async function registerUser(data) {
         const response = await register(data); // returns token
         setToken(response.token);
 
-        const meRes = await fetch("http://localhost:8080/api/users/me", {
-            headers: { Authorization: `Bearer ${response.token}` }
+        await refreshUser(response.token);
+    }
+
+    async function refreshUser(authToken = token) {
+        if (!authToken) {
+            return null;
+        }
+
+        const meRes = await fetch(CURRENT_USER_URL, {
+            headers: { Authorization: `Bearer ${authToken}` }
         });
+
+        if (!meRes.ok) {
+            throw new Error("Failed to load current user");
+        }
 
         const userData = await meRes.json();
 
         setUser(userData);
+        return userData;
+    }
+
+    function updateUser(nextUser) {
+        setUser(nextUser);
     }
 
     function logoutUser() {
@@ -51,7 +73,15 @@ export function AuthProvider({ children }) {
         setUser(null);
     }
 
-    const value = { user, token, loginUser, logoutUser, registerUser };
+    const value = {
+        user,
+        token,
+        loginUser,
+        logoutUser,
+        registerUser,
+        refreshUser,
+        updateUser
+    };
 
     return (
         <AuthContext.Provider value={value}>

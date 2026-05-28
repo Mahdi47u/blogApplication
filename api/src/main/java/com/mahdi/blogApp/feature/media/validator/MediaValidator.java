@@ -8,7 +8,7 @@ import java.util.Set;
 @Component
 public class MediaValidator {
 
-    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024;
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
             "image/jpeg",
             "image/jpg",
@@ -23,7 +23,7 @@ public class MediaValidator {
         }
 
         if (file.getSize() > MAX_IMAGE_SIZE) {
-            throw new IllegalArgumentException("Image file must be less than 5MB");
+            throw new IllegalArgumentException("Image file must be less than 10MB");
         }
 
         String contentType = file.getContentType();

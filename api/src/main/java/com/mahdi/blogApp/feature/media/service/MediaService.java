@@ -52,17 +52,18 @@ public class MediaService {
         try {
             byte[] originalBytes = file.getBytes();
             String extension = resolveExtension(file.getOriginalFilename(), file.getContentType());
+            ProcessedImage image = optimizeImage(originalBytes, file.getContentType(), extension);
             String id = UUID.randomUUID().toString();
-            ThumbnailData thumbnailData = createThumbnail(originalBytes, file.getContentType(), extension);
+            ThumbnailData thumbnailData = createThumbnail(image.bytes(), image.contentType(), image.extension());
 
-            String objectKey = "posts/covers/%d/%s%s".formatted(postId, id, extension);
+            String objectKey = "posts/covers/%d/%s%s".formatted(postId, id, image.extension());
             String thumbnailObjectKey = "posts/thumbnails/%d/%s%s".formatted(postId, id, thumbnailData.extension());
 
             StoredObject original = objectStorageService.upload(
                     objectKey,
-                    new ByteArrayInputStream(originalBytes),
-                    originalBytes.length,
-                    file.getContentType()
+                    new ByteArrayInputStream(image.bytes()),
+                    image.bytes().length,
+                    image.contentType()
             );
 
             StoredObject thumbnail = objectStorageService.upload(
@@ -77,8 +78,8 @@ public class MediaService {
             mediaAsset.setObjectKey(original.getObjectKey());
             mediaAsset.setPublicUrl(original.getPublicUrl());
             mediaAsset.setOriginalFileName(file.getOriginalFilename());
-            mediaAsset.setContentType(file.getContentType());
-            mediaAsset.setSize(file.getSize());
+            mediaAsset.setContentType(image.contentType());
+            mediaAsset.setSize((long) image.bytes().length);
             mediaAsset.setMediaType(MediaType.POST_COVER);
             mediaAsset.setOwner(currentUser);
             mediaAsset.setPost(post);
@@ -119,14 +120,15 @@ public class MediaService {
         try {
             byte[] originalBytes = file.getBytes();
             String extension = resolveExtension(file.getOriginalFilename(), file.getContentType());
+            ProcessedImage image = optimizeImage(originalBytes, file.getContentType(), extension);
             String id = UUID.randomUUID().toString();
-            String objectKey = "profiles/%d/%s%s".formatted(currentUser.getId(), id, extension);
+            String objectKey = "profiles/%d/%s%s".formatted(currentUser.getId(), id, image.extension());
 
             StoredObject original = objectStorageService.upload(
                     objectKey,
-                    new ByteArrayInputStream(originalBytes),
-                    originalBytes.length,
-                    file.getContentType()
+                    new ByteArrayInputStream(image.bytes()),
+                    image.bytes().length,
+                    image.contentType()
             );
 
             MediaAssetEntity mediaAsset = new MediaAssetEntity();
@@ -134,8 +136,8 @@ public class MediaService {
             mediaAsset.setObjectKey(original.getObjectKey());
             mediaAsset.setPublicUrl(original.getPublicUrl());
             mediaAsset.setOriginalFileName(file.getOriginalFilename());
-            mediaAsset.setContentType(file.getContentType());
-            mediaAsset.setSize(file.getSize());
+            mediaAsset.setContentType(image.contentType());
+            mediaAsset.setSize((long) image.bytes().length);
             mediaAsset.setMediaType(MediaType.PROFILE_IMAGE);
             mediaAsset.setOwner(currentUser);
 
@@ -155,6 +157,43 @@ public class MediaService {
 
         UserEntity currentUser = getCurrentUser();
         deleteExistingProfileImage(currentUser);
+    }
+
+    @Transactional
+    public MediaAssetResponse uploadEditorImage(MultipartFile file) {
+
+        mediaValidator.validateImage(file);
+
+        UserEntity currentUser = getCurrentUser();
+
+        try {
+            byte[] originalBytes = file.getBytes();
+            String extension = resolveExtension(file.getOriginalFilename(), file.getContentType());
+            ProcessedImage image = optimizeImage(originalBytes, file.getContentType(), extension);
+            String id = UUID.randomUUID().toString();
+            String objectKey = "editor/%d/%s%s".formatted(currentUser.getId(), id, image.extension());
+
+            StoredObject original = objectStorageService.upload(
+                    objectKey,
+                    new ByteArrayInputStream(image.bytes()),
+                    image.bytes().length,
+                    image.contentType()
+            );
+
+            MediaAssetEntity mediaAsset = new MediaAssetEntity();
+            mediaAsset.setBucket(original.getBucket());
+            mediaAsset.setObjectKey(original.getObjectKey());
+            mediaAsset.setPublicUrl(original.getPublicUrl());
+            mediaAsset.setOriginalFileName(file.getOriginalFilename());
+            mediaAsset.setContentType(image.contentType());
+            mediaAsset.setSize((long) image.bytes().length);
+            mediaAsset.setMediaType(MediaType.ATTACHMENT);
+            mediaAsset.setOwner(currentUser);
+
+            return mediaMapper.toResponse(mediaAssetRepository.save(mediaAsset));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process editor image", e);
+        }
     }
 
     private void deleteExistingPostCover(PostEntity post) {
@@ -192,11 +231,34 @@ public class MediaService {
             Thumbnails.of(new ByteArrayInputStream(originalBytes))
                     .width(480)
                     .outputFormat("jpg")
+                    .outputQuality(0.78)
                     .toOutputStream(outputStream);
 
             return new ThumbnailData(outputStream.toByteArray(), "image/jpeg", ".jpg");
         } catch (Exception e) {
             return new ThumbnailData(originalBytes, originalContentType, originalExtension);
+        }
+    }
+
+    private ProcessedImage optimizeImage(byte[] originalBytes, String originalContentType, String originalExtension) {
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+            Thumbnails.of(new ByteArrayInputStream(originalBytes))
+                    .size(1600, 1600)
+                    .outputFormat("jpg")
+                    .outputQuality(0.82)
+                    .toOutputStream(outputStream);
+
+            byte[] optimizedBytes = outputStream.toByteArray();
+
+            if (optimizedBytes.length >= originalBytes.length) {
+                return new ProcessedImage(originalBytes, originalContentType, originalExtension);
+            }
+
+            return new ProcessedImage(optimizedBytes, "image/jpeg", ".jpg");
+        } catch (Exception e) {
+            return new ProcessedImage(originalBytes, originalContentType, originalExtension);
         }
     }
 
@@ -254,5 +316,8 @@ public class MediaService {
     }
 
     private record ThumbnailData(byte[] bytes, String contentType, String extension) {
+    }
+
+    private record ProcessedImage(byte[] bytes, String contentType, String extension) {
     }
 }

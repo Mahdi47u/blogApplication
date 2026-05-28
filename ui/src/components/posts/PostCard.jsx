@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import CategoryBadge from "../categories/CategoryBadge";
 import BookmarkButton from "../bookmarks/BookmarkButton";
+import { extractRichTextText } from "../../utils/richText";
 
 function PostCard({ post }) {
+    const excerpt = post.excerpt || post.description || extractRichTextText(post.content);
+
     return (
         <article
             className="
@@ -47,7 +50,7 @@ function PostCard({ post }) {
 
             {/* Excerpt */}
             <p className="text-gray-600 text-sm leading-tight mb-4 line-clamp-3">
-                {post.excerpt || post.description || post.content || "No description available."}
+                {excerpt || "No description available."}
             </p>
 
             {/* Footer */}

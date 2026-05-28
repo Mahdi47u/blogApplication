@@ -1,19 +1,38 @@
 import { useEffect, useState } from "react";
 import { getAllPosts, searchPosts } from "../services/postService";
+import { getCategories } from "../services/categoryService";
 import PostCard from "../components/posts/PostCard.jsx";
 
 function HomePage() {
     const [posts, setPosts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingCategories, setLoadingCategories] = useState(true);
     const [error, setError] = useState(null);
+    const [categoryError, setCategoryError] = useState(null);
     const [search, setSearch] = useState("");
     const [activeSearch, setActiveSearch] = useState("");
-    const [categories] = useState(["All", "Tech", "News", "Art", "General"]);
-    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
     useEffect(() => {
         loadPosts();
+        loadCategories();
     }, []);
+
+    async function loadCategories() {
+        try {
+            setLoadingCategories(true);
+            setCategoryError(null);
+
+            const data = await getCategories();
+            setCategories(data || []);
+        } catch (error) {
+            console.error("Error loading categories:", error);
+            setCategoryError("Categories could not be loaded.");
+        } finally {
+            setLoadingCategories(false);
+        }
+    }
 
     async function loadPosts(query = "") {
         try {
@@ -47,11 +66,21 @@ function HomePage() {
 
     // Category filtering stays client-side; text search is handled by the API.
     const filteredPosts = posts.filter((post) => {
-        const matchCategory =
-            selectedCategory === "All" ||
-            post.categories?.some((cat) =>
-                cat.name.toLowerCase() === selectedCategory.toLowerCase()
+        if (!selectedCategory) {
+            return true;
+        }
+
+        const matchCategory = post.categories?.some((category) => {
+            if (typeof category === "string") {
+                return category.toLowerCase() === selectedCategory.name.toLowerCase();
+            }
+
+            return (
+                category.id === selectedCategory.id ||
+                category.slug === selectedCategory.slug ||
+                category.name?.toLowerCase() === selectedCategory.name.toLowerCase()
             );
+        });
 
         return matchCategory;
     });
@@ -102,21 +131,47 @@ function HomePage() {
 
             {/* Categories */}
             <div className="max-w-3xl mx-auto flex gap-3 overflow-x-auto pb-2 mb-10 no-scrollbar">
-                {categories.map((cat) => (
+                <button
+                    type="button"
+                    onClick={() => setSelectedCategory(null)}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap shadow-sm transition
+                        ${
+                        !selectedCategory
+                            ? "bg-blue-600 text-white shadow-blue-600/30"
+                            : "bg-white/70 border border-white/40 text-gray-700 hover:bg-white"
+                    }`}
+                >
+                    All
+                </button>
+
+                {loadingCategories && (
+                    <span className="px-4 py-2 text-sm text-gray-500">
+                        Loading categories...
+                    </span>
+                )}
+
+                {!loadingCategories && categories.map((category) => (
                     <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
+                        key={category.id}
+                        type="button"
+                        onClick={() => setSelectedCategory(category)}
                         className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap shadow-sm transition
                             ${
-                            selectedCategory === cat
+                            selectedCategory?.id === category.id
                                 ? "bg-blue-600 text-white shadow-blue-600/30"
                                 : "bg-white/70 border border-white/40 text-gray-700 hover:bg-white"
                         }`}
                     >
-                        {cat}
+                        {category.name}
                     </button>
                 ))}
             </div>
+
+            {categoryError && (
+                <p className="mx-auto mb-6 max-w-3xl text-sm text-red-500">
+                    {categoryError}
+                </p>
+            )}
 
             {/* Section Title */}
             <h2 className="text-2xl font-semibold mb-6 text-gray-900">

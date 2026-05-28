@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import CommentSection from "../../components/comments/CommentSection";
 import CategoryBadge from "../../components/categories/CategoryBadge";
 import BookmarkButton from "../../components/bookmarks/BookmarkButton";
+import RichTextContent from "../../components/editor/RichTextContent";
 
 function PostDetailsPage() {
     const { id } = useParams();
@@ -110,9 +111,7 @@ function PostDetailsPage() {
                     </div>
 
                     {/* Content */}
-                    <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
-                        {post.content}
-                    </p>
+                    <RichTextContent value={post.content} />
 
                     {/* Owner Actions */}
                     {isOwner && (

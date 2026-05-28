@@ -52,4 +52,13 @@ public class MediaController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping(value = "/editor/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SUPERADMIN')")
+    public ResponseEntity<MediaAssetResponse> uploadEditorImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+
+        return ResponseEntity.ok(mediaService.uploadEditorImage(file));
+    }
 }
