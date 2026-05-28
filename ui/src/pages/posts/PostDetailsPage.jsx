@@ -4,6 +4,7 @@ import { getPostById, deletePost } from "../../services/postService";
 import { AuthContext } from "../../context/AuthContext";
 import CommentSection from "../../components/comments/CommentSection";
 import CategoryBadge from "../../components/categories/CategoryBadge";
+import BookmarkButton from "../../components/bookmarks/BookmarkButton";
 
 function PostDetailsPage() {
     const { id } = useParams();
@@ -76,7 +77,7 @@ function PostDetailsPage() {
                         <div className="flex flex-wrap gap-2 mb-4">
                             {post.categories.map((category) => (
                                 <CategoryBadge
-                                    key={category.id}
+                                    key={typeof category === "string" ? category : category.id}
                                     category={category}
                                 />
                             ))}
@@ -93,6 +94,10 @@ function PostDetailsPage() {
                     <div className="flex items-center gap-4 text-gray-500 text-sm mb-8">
                         <span>🕒 {formattedDate}</span>
                         <span>👤 Author ID: {post.authorId}</span>
+                    </div>
+
+                    <div className="mb-8">
+                        <BookmarkButton postId={post.id} />
                     </div>
 
                     {/* Content */}

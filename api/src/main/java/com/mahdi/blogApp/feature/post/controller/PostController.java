@@ -40,6 +40,18 @@ public class PostController {
     }
 
     @PreAuthorize("permitAll()")
+    @GetMapping("/search")
+    public ResponseEntity<Page<PostResponse>> searchPosts(
+            @RequestParam(defaultValue = "") String query,
+            Pageable pageable
+    ) {
+
+        return ResponseEntity.ok(
+                postService.searchPosts(query, pageable)
+        );
+    }
+
+    @PreAuthorize("permitAll()")
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable Long id) {
 

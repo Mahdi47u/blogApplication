@@ -23,6 +23,17 @@ export async function getAllPosts() {
     return response.json();
 }
 
+export async function searchPosts(query) {
+    const params = new URLSearchParams({ query });
+    const response = await fetch(`${API_URL}/search?${params.toString()}`);
+
+    if (!response.ok) {
+        throw new Error("Failed to search posts");
+    }
+
+    return response.json();
+}
+
 
 export async function createPost(post) {
     const response = await fetch(API_URL, {

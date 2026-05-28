@@ -14,6 +14,7 @@ import LoginPage from "./pages/login/LoginPage.jsx";
 import RegisterPage from "./pages/login/RegisterPage.jsx";
 import ForgotPasswordPage from "./pages/login/ForgotPasswordPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
+import SavedPostsPage from "./pages/bookmarks/SavedPostsPage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminUsersPage from "./pages/admin/AdminUsersPage.jsx";
 import AdminPostsPage from "./pages/admin/AdminPostsPage.jsx";
@@ -43,6 +44,7 @@ function App() {
                     {/* USER PROTECTED ROUTES */}
                     <Route element={<RequireAuth />}>
                         <Route path="profile" element={<ProfilePage />} />
+                        <Route path="bookmarks" element={<SavedPostsPage />} />
                         <Route path="create" element={<CreatePostPage />} />
                         <Route path="posts/:id/edit" element={<EditPostPage />} />
                     </Route>

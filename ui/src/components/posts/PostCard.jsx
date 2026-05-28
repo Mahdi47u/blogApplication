@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import CategoryBadge from "../categories/CategoryBadge";
+import BookmarkButton from "../bookmarks/BookmarkButton";
 
 function PostCard({ post }) {
     return (
-        <Link
-            to={`/posts/${post.id}`}
+        <article
             className="
-                group block p-5 rounded-3xl
+                group p-5 rounded-3xl
                 bg-white/60 backdrop-blur-xl
                 border border-white/40 shadow-lg
                 hover:shadow-xl transition duration-300
@@ -18,41 +18,49 @@ function PostCard({ post }) {
                 <div className="flex flex-wrap gap-2 mb-3">
                     {post.categories.map((category) => (
                         <CategoryBadge
-                            key={category.id}
+                            key={typeof category === "string" ? category : category.id}
                             category={category}
                         />
                     ))}
                 </div>
             )}
 
-
             {/* Title */}
-            <h2 className="
-                text-lg font-semibold text-gray-900 mb-2
-                group-hover:text-blue-600 transition
-            ">
-                {post.title}
-            </h2>
+            <Link to={`/posts/${post.id}`}>
+                <h2 className="
+                    text-lg font-semibold text-gray-900 mb-2
+                    group-hover:text-blue-600 transition
+                ">
+                    {post.title}
+                </h2>
+            </Link>
 
             {/* Excerpt */}
             <p className="text-gray-600 text-sm leading-tight mb-4 line-clamp-3">
-                {post.excerpt || post.description || "No description available."}
+                {post.excerpt || post.description || post.content || "No description available."}
             </p>
 
             {/* Footer */}
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-gray-500">
                     {post.authorName || "Unknown"}
                 </span>
 
-                <span className="
-                    text-blue-600 font-medium
-                    group-hover:underline
-                ">
-                    Read more →
-                </span>
+                <div className="flex items-center gap-2">
+                    <BookmarkButton postId={post.id} />
+
+                    <Link
+                        to={`/posts/${post.id}`}
+                        className="
+                            text-blue-600 font-medium
+                            hover:underline
+                        "
+                    >
+                        Read more
+                    </Link>
+                </div>
             </div>
-        </Link>
+        </article>
     );
 }
 

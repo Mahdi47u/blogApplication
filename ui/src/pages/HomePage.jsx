@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllPosts } from "../services/postService";
+import { getAllPosts, searchPosts } from "../services/postService";
 import PostCard from "../components/posts/PostCard.jsx";
 
 function HomePage() {
@@ -7,6 +7,7 @@ function HomePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState("");
+    const [activeSearch, setActiveSearch] = useState("");
     const [categories] = useState(["All", "Tech", "News", "Art", "General"]);
     const [selectedCategory, setSelectedCategory] = useState("All");
 
@@ -14,32 +15,45 @@ function HomePage() {
         loadPosts();
     }, []);
 
-    async function loadPosts() {
+    async function loadPosts(query = "") {
         try {
             setLoading(true);
             setError(null);
 
-            const data = await getAllPosts();
+            const normalizedQuery = query.trim();
+            const data = normalizedQuery
+                ? await searchPosts(normalizedQuery)
+                : await getAllPosts();
+
             setPosts(data.content || data || []);
+            setActiveSearch(normalizedQuery);
         } catch (error) {
             console.error("Error loading posts:", error);
-            setError("Failed to load posts. Please try again later.");
+            setError(query ? "Search failed. Please try again." : "Failed to load posts. Please try again later.");
         } finally {
             setLoading(false);
         }
     }
 
-    // Filter logic (search + category)
+    function handleSearchSubmit(event) {
+        event.preventDefault();
+        loadPosts(search);
+    }
+
+    function clearSearch() {
+        setSearch("");
+        loadPosts();
+    }
+
+    // Category filtering stays client-side; text search is handled by the API.
     const filteredPosts = posts.filter((post) => {
         const matchCategory =
             selectedCategory === "All" ||
-            post.categories?.some((cat) => cat.name.toLowerCase() === selectedCategory.toLowerCase()
+            post.categories?.some((cat) =>
+                cat.name.toLowerCase() === selectedCategory.toLowerCase()
             );
 
-        const matchSearch =
-            post.title?.toLowerCase().includes(search.toLowerCase());
-
-        return matchCategory && matchSearch;
+        return matchCategory;
     });
 
     return (
@@ -47,7 +61,7 @@ function HomePage() {
             {/* Hero Section */}
             <div className="max-w-4xl mx-auto text-center mb-12 animate-fadeIn">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-                    Welcome Back 👋
+                    Welcome Back
                 </h1>
                 <p className="mt-3 text-gray-600 text-lg">
                     Explore recent posts and discover fresh content.
@@ -55,18 +69,36 @@ function HomePage() {
             </div>
 
             {/* Search Bar */}
-            <div className="max-w-xl mx-auto mb-8">
-                <div className="rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg px-5 py-3 flex items-center gap-3 transition focus-within:ring-4 focus-within:ring-blue-200">
-                    <span className="text-gray-500 text-xl">🔍</span>
+            <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-8">
+                <div className="rounded-xl bg-white border border-slate-200 shadow-sm px-4 py-3 flex items-center gap-3 transition focus-within:ring-4 focus-within:ring-blue-100">
+                    <span className="text-gray-500 text-sm font-medium" aria-hidden="true">
+                        Search
+                    </span>
                     <input
                         type="text"
-                        placeholder="Search posts..."
+                        placeholder="Search by title or content..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
                     />
+                    {activeSearch && (
+                        <button
+                            type="button"
+                            onClick={clearSearch}
+                            className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-100 transition"
+                        >
+                            Clear
+                        </button>
+                    )}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 transition"
+                    >
+                        {loading ? "Searching" : "Search"}
+                    </button>
                 </div>
-            </div>
+            </form>
 
             {/* Categories */}
             <div className="max-w-3xl mx-auto flex gap-3 overflow-x-auto pb-2 mb-10 no-scrollbar">
@@ -88,7 +120,7 @@ function HomePage() {
 
             {/* Section Title */}
             <h2 className="text-2xl font-semibold mb-6 text-gray-900">
-                Recent Posts
+                {activeSearch ? `Search results for "${activeSearch}"` : "Recent Posts"}
             </h2>
 
             {/* Loading */}

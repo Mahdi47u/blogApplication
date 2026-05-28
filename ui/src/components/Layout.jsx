@@ -50,6 +50,12 @@ function Layout() {
                             </Link>
                         )}
 
+                        {user && (
+                            <Link to="/bookmarks" className="text-gray-700 hover:text-blue-600 transition">
+                                Saved Posts
+                            </Link>
+                        )}
+
                         {/* Admin Link */}
                         {isAdmin && (
                             <Link

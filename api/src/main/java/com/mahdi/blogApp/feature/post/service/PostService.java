@@ -115,6 +115,23 @@ public class PostService {
                 .map(postMapper::toResponse);
     }
 
+    public Page<PostResponse> searchPosts(String query, Pageable pageable) {
+
+        String normalizedQuery = query == null ? "" : query.trim();
+
+        if (normalizedQuery.isBlank()) {
+            return getAllPosts(pageable);
+        }
+
+        return postRepository
+                .findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+                        normalizedQuery,
+                        normalizedQuery,
+                        pageable
+                )
+                .map(postMapper::toResponse);
+    }
+
     public Page<PostResponse> getMyPosts(Pageable pageable) {
 
         UserEntity currentUser = getCurrentUser();
