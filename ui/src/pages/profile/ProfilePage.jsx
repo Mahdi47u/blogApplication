@@ -1,7 +1,8 @@
 import { useEffect, useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { apiFetch } from "../../utils/api.js";
-import { Link } from "react-router-dom";
+import { removeProfileImage, uploadProfileImage } from "../../services/mediaService.js";
 
 export default function ProfilePage() {
     const { token } = useContext(AuthContext);
@@ -9,129 +10,319 @@ export default function ProfilePage() {
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
     const [postCount, setPostCount] = useState(0);
-
     const [bio, setBio] = useState("");
     const [profilePic, setProfilePic] = useState(null);
+    const [profilePreview, setProfilePreview] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [savingBio, setSavingBio] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [error, setError] = useState(null);
+    const [message, setMessage] = useState(null);
 
     useEffect(() => {
         if (token) {
-            loadUser();
-            loadMyPosts();
+            loadProfile();
         }
     }, [token]);
 
-    async function loadUser() {
-        const data = await apiFetch("http://localhost:8080/api/users/me");
-        setUser(data);
-        setBio(data.bio || "");
-    }
+    async function loadProfile() {
+        try {
+            setLoading(true);
+            setError(null);
 
-    async function loadMyPosts() {
-        const list = await apiFetch("http://localhost:8080/api/posts/me?page=0&size=20");
-        const count = await apiFetch("http://localhost:8080/api/posts/me/count");
+            const [userData, postsData, countData] = await Promise.all([
+                apiFetch("http://localhost:8080/api/users/me"),
+                apiFetch("http://localhost:8080/api/posts/me?page=0&size=20"),
+                apiFetch("http://localhost:8080/api/posts/me/count")
+            ]);
 
-        setPosts(list.content);
-        setPostCount(count);
+            setUser(userData);
+            setBio(userData.bio || "");
+            setProfilePreview(userData.profilePicture || "");
+            setPosts(postsData.content || []);
+            setPostCount(countData);
+        } catch (error) {
+            console.error("Failed to load profile:", error);
+            setError("Profile could not be loaded.");
+        } finally {
+            setLoading(false);
+        }
     }
 
     async function updateBio() {
-        await apiFetch("http://localhost:8080/api/users/me/bio", {
-            method: "PUT",
-            body: JSON.stringify({ bio }),
-        });
-        loadUser();
+        try {
+            setSavingBio(true);
+            setMessage(null);
+            setError(null);
+
+            const updated = await apiFetch("http://localhost:8080/api/users/me/bio", {
+                method: "PUT",
+                body: JSON.stringify({ bio }),
+            });
+
+            setUser(updated);
+            setMessage("Bio updated.");
+        } catch (error) {
+            console.error("Failed to update bio:", error);
+            setError(error.message || "Bio could not be updated.");
+        } finally {
+            setSavingBio(false);
+        }
+    }
+
+    function handleProfilePicChange(event) {
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        setProfilePic(file);
+        setProfilePreview(URL.createObjectURL(file));
     }
 
     async function updateProfilePicture() {
-        const form = new FormData();
-        form.append("file", profilePic);
+        if (!profilePic) {
+            return;
+        }
 
-        await fetch("http://localhost:8080/api/users/me/profile-picture", {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: form,
-        });
+        try {
+            setUploadingImage(true);
+            setMessage(null);
+            setError(null);
 
-        loadUser();
+            await uploadProfileImage(profilePic);
+            setProfilePic(null);
+            await loadProfile();
+            setMessage("Profile picture updated.");
+        } catch (error) {
+            console.error("Failed to update profile picture:", error);
+            setError(error.message || "Profile picture could not be updated.");
+        } finally {
+            setUploadingImage(false);
+        }
     }
 
-    if (!user) return <div className="p-8">Loading...</div>;
+    async function deleteProfilePicture() {
+        try {
+            setUploadingImage(true);
+            setMessage(null);
+            setError(null);
+
+            await removeProfileImage();
+            setProfilePic(null);
+            await loadProfile();
+            setMessage("Profile picture removed.");
+        } catch (error) {
+            console.error("Failed to remove profile picture:", error);
+            setError(error.message || "Profile picture could not be removed.");
+        } finally {
+            setUploadingImage(false);
+        }
+    }
+
+    if (loading) {
+        return <ProfileSkeleton />;
+    }
+
+    if (!user) {
+        return (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-red-700">
+                {error || "Profile not found."}
+            </div>
+        );
+    }
 
     return (
-        <div className="max-w-5xl mx-auto p-8">
-            {/* HEADER */}
-            <div className="flex items-center gap-6 border-b pb-6 mb-8">
-                <img
-                    src={user.profilePicture || "/default-avatar.png"}
-                    alt="avatar"
-                    className="w-28 h-28 rounded-full border object-cover"
-                />
+        <div className="space-y-8">
+            <header className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-5">
+                        <Avatar user={user} preview={profilePreview} />
 
-                <div>
-                    <h1 className="text-3xl font-semibold">{user.username}</h1>
-                    <p className="text-gray-500">{user.email}</p>
-                    <p className="mt-2 text-gray-700">{user.bio || "No bio yet..."}</p>
+                        <div>
+                            <h1 className="text-3xl font-semibold text-slate-950">{user.username}</h1>
+                            <p className="mt-1 text-slate-500">{user.email}</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {user.roles?.map((role) => (
+                                    <RoleBadge key={role} role={role} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
 
-                    <div className="mt-3 text-sm text-gray-500">
-                        Joined: {new Date(user.createdAt).toLocaleDateString()}
+                    <div className="grid grid-cols-2 gap-4 text-right">
+                        <div>
+                            <p className="text-2xl font-semibold text-slate-950">{postCount}</p>
+                            <p className="text-sm text-slate-500">Posts</p>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-semibold text-slate-950">
+                                {formatDate(user.createdAt)}
+                            </p>
+                            <p className="text-sm text-slate-500">Joined</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* EDIT BIO */}
-            <div className="mb-10">
-                <h2 className="text-xl font-semibold mb-3">Edit Bio</h2>
+                <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-700">
+                    {user.bio || "No bio yet."}
+                </p>
+            </header>
 
-                <textarea
-                    className="w-full border rounded p-3"
-                    rows="3"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                />
-
-                <button
-                    onClick={updateBio}
-                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                    Save Bio
-                </button>
-            </div>
-
-            {/* UPDATE PROFILE PICTURE */}
-            <div className="mb-10">
-                <h2 className="text-xl font-semibold mb-3">Profile Picture</h2>
-                <input type="file" onChange={(e) => setProfilePic(e.target.files[0])} />
-
-                <button
-                    onClick={updateProfilePicture}
-                    className="mt-2 px-4 py-2 bg-green-600 text-white rounded"
-                >
-                    Upload Picture
-                </button>
-            </div>
-
-            {/* MY POSTS */}
-            <div className="mb-10">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">My Posts</h2>
-                    <span className="text-gray-600">{postCount} posts</span>
+            {message && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                    {message}
                 </div>
+            )}
 
-                <div className="space-y-4">
-                    {posts.map((post) => (
-                        <Link
-                            to={`/post/${post.id}`}
-                            key={post.id}
-                            className="block p-4 border rounded hover:bg-gray-50"
+            {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
+
+            <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <div className="space-y-6">
+                    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                        <h2 className="text-lg font-semibold text-slate-950">Bio</h2>
+                        <textarea
+                            className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            rows="5"
+                            value={bio}
+                            onChange={(event) => setBio(event.target.value)}
+                            placeholder="Write a short bio..."
+                        />
+
+                        <button
+                            onClick={updateBio}
+                            disabled={savingBio}
+                            className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                         >
-                            <h3 className="text-lg font-medium">{post.title}</h3>
-                            <p className="text-gray-600 line-clamp-2">{post.content}</p>
-                        </Link>
-                    ))}
+                            {savingBio ? "Saving" : "Save Bio"}
+                        </button>
+                    </div>
+
+                    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-slate-950">My Posts</h2>
+                            <span className="text-sm text-slate-500">{postCount} posts</span>
+                        </div>
+
+                        {posts.length === 0 ? (
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                                You have not published any posts yet.
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-slate-100">
+                                {posts.map((post) => (
+                                    <Link
+                                        to={`/posts/${post.id}`}
+                                        key={post.id}
+                                        className="block py-4 transition hover:bg-slate-50"
+                                    >
+                                        <h3 className="font-medium text-slate-950">{post.title}</h3>
+                                        <p className="mt-1 line-clamp-2 text-sm text-slate-600">
+                                            {post.content}
+                                        </p>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <h2 className="text-lg font-semibold text-slate-950">Profile Picture</h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                        Upload a JPG, PNG, or WEBP image. Max 5MB.
+                    </p>
+
+                    <div className="mt-5">
+                        <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            onChange={handleProfilePicChange}
+                            className="
+                                block w-full text-sm text-slate-600
+                                file:mr-4 file:rounded-lg file:border-0
+                                file:bg-blue-50 file:px-4 file:py-2
+                                file:text-sm file:font-medium file:text-blue-700
+                                hover:file:bg-blue-100
+                            "
+                        />
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                        <button
+                            onClick={updateProfilePicture}
+                            disabled={!profilePic || uploadingImage}
+                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                        >
+                            {uploadingImage ? "Uploading" : "Upload"}
+                        </button>
+
+                        {user.profilePicture && (
+                            <button
+                                onClick={deleteProfilePicture}
+                                disabled={uploadingImage}
+                                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Remove
+                            </button>
+                        )}
+                    </div>
+                </aside>
+            </section>
+        </div>
+    );
+}
+
+function Avatar({ user, preview }) {
+    const initials = user.username?.slice(0, 2).toUpperCase() || "U";
+
+    return (
+        <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-2xl font-semibold text-slate-500">
+            {preview ? (
+                <img
+                    src={preview}
+                    alt={user.username}
+                    className="h-full w-full object-cover"
+                />
+            ) : (
+                initials
+            )}
+        </div>
+    );
+}
+
+function RoleBadge({ role }) {
+    const tone = role === "SUPERADMIN"
+        ? "bg-purple-50 text-purple-700"
+        : role === "ADMIN"
+            ? "bg-blue-50 text-blue-700"
+            : "bg-slate-100 text-slate-700";
+
+    return (
+        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone}`}>
+            {role}
+        </span>
+    );
+}
+
+function ProfileSkeleton() {
+    return (
+        <div className="space-y-6">
+            <div className="h-40 animate-pulse rounded-lg bg-slate-100" />
+            <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <div className="h-80 animate-pulse rounded-lg bg-slate-100" />
+                <div className="h-80 animate-pulse rounded-lg bg-slate-100" />
             </div>
         </div>
     );
+}
+
+function formatDate(value) {
+    if (!value) return "Unknown";
+    return new Date(value).toLocaleDateString();
 }

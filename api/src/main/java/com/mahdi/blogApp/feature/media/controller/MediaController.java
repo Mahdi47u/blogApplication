@@ -34,4 +34,22 @@ public class MediaController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping(value = "/users/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SUPERADMIN')")
+    public ResponseEntity<MediaAssetResponse> uploadProfileImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+
+        return ResponseEntity.ok(mediaService.uploadProfileImage(file));
+    }
+
+    @DeleteMapping("/users/me/profile-picture")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SUPERADMIN')")
+    public ResponseEntity<Void> deleteProfileImage() {
+
+        mediaService.deleteProfileImage();
+
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -3,6 +3,7 @@ package com.mahdi.blogApp.feature.user.mapper;
 
 
 import com.mahdi.blogApp.feature.user.model.UserModel;
+import com.mahdi.blogApp.feature.user.model.ProfileResponse;
 import com.mahdi.blogApp.feature.user.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,6 +23,8 @@ public interface UserMapper {
     // ENTITY → MODEL
     @Mapping(target = "password", ignore = true)
     UserModel toModel(UserEntity entity);
+
+    ProfileResponse toProfileResponse(UserEntity entity);
 
     // MODEL → ENTITY (CREATE)
     @Mapping(target = "id", ignore = true)

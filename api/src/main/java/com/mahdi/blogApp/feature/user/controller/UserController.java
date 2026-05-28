@@ -2,6 +2,8 @@ package com.mahdi.blogApp.feature.user.controller;
 
 
 import com.mahdi.blogApp.feature.user.model.ChangePasswordRequest;
+import com.mahdi.blogApp.feature.user.model.BioUpdateRequest;
+import com.mahdi.blogApp.feature.user.model.ProfileResponse;
 import com.mahdi.blogApp.feature.user.model.UserModel;
 import com.mahdi.blogApp.feature.user.service.UserManagementService;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +28,9 @@ public class UserController {
     // ------------------------------------------------------------
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SUPERADMIN')")
-    public UserModel getCurrentUser(Authentication auth) {
+    public ProfileResponse getCurrentUser(Authentication auth) {
         String username = auth.getName();
-        return userService.getUserByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        return userService.getProfileByUsername(username);
     }
 
     // ------------------------------------------------------------
@@ -64,26 +65,26 @@ public class UserController {
     }
 
     @PutMapping("/me/bio")
-    public ResponseEntity<UserModel> updateBio(
-            @RequestBody String bio,
+    public ResponseEntity<ProfileResponse> updateBio(
+            @RequestBody BioUpdateRequest request,
             Authentication auth) {
 
         String username = auth.getName();
 
-        UserModel updatedUser = userService.updateBio(username, bio);
+        ProfileResponse updatedUser = userService.updateBio(username, request.getBio());
 
         return ResponseEntity.ok(updatedUser);
     }
 
     @PutMapping("/me/profile-picture")
-    public ResponseEntity<UserModel> updateProfilePicture(
+    public ResponseEntity<ProfileResponse> updateProfilePicture(
             @RequestBody String imageUrl,
             Authentication auth) {
 
         String username = auth.getName();
 
-        UserModel updatedUser =
-                userService.updateProfilePicture(username, imageUrl);
+        ProfileResponse updatedUser =
+                userService.updateProfilePictureUrl(username, imageUrl);
 
         return ResponseEntity.ok(updatedUser);
     }

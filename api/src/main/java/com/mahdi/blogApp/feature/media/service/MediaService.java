@@ -108,6 +108,55 @@ public class MediaService {
         deleteExistingPostCover(post);
     }
 
+    @Transactional
+    public MediaAssetResponse uploadProfileImage(MultipartFile file) {
+
+        mediaValidator.validateImage(file);
+
+        UserEntity currentUser = getCurrentUser();
+        deleteExistingProfileImage(currentUser);
+
+        try {
+            byte[] originalBytes = file.getBytes();
+            String extension = resolveExtension(file.getOriginalFilename(), file.getContentType());
+            String id = UUID.randomUUID().toString();
+            String objectKey = "profiles/%d/%s%s".formatted(currentUser.getId(), id, extension);
+
+            StoredObject original = objectStorageService.upload(
+                    objectKey,
+                    new ByteArrayInputStream(originalBytes),
+                    originalBytes.length,
+                    file.getContentType()
+            );
+
+            MediaAssetEntity mediaAsset = new MediaAssetEntity();
+            mediaAsset.setBucket(original.getBucket());
+            mediaAsset.setObjectKey(original.getObjectKey());
+            mediaAsset.setPublicUrl(original.getPublicUrl());
+            mediaAsset.setOriginalFileName(file.getOriginalFilename());
+            mediaAsset.setContentType(file.getContentType());
+            mediaAsset.setSize(file.getSize());
+            mediaAsset.setMediaType(MediaType.PROFILE_IMAGE);
+            mediaAsset.setOwner(currentUser);
+
+            MediaAssetEntity savedMedia = mediaAssetRepository.save(mediaAsset);
+
+            currentUser.setProfilePicture(savedMedia.getPublicUrl());
+            userRepository.save(currentUser);
+
+            return mediaMapper.toResponse(savedMedia);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process profile image", e);
+        }
+    }
+
+    @Transactional
+    public void deleteProfileImage() {
+
+        UserEntity currentUser = getCurrentUser();
+        deleteExistingProfileImage(currentUser);
+    }
+
     private void deleteExistingPostCover(PostEntity post) {
 
         mediaAssetRepository
@@ -121,6 +170,19 @@ public class MediaService {
         post.setCoverImageUrl(null);
         post.setThumbnailUrl(null);
         postRepository.save(post);
+    }
+
+    private void deleteExistingProfileImage(UserEntity user) {
+
+        mediaAssetRepository
+                .findTopByOwnerIdAndMediaTypeOrderByCreatedAtDesc(user.getId(), MediaType.PROFILE_IMAGE)
+                .ifPresent(mediaAsset -> {
+                    objectStorageService.delete(mediaAsset.getObjectKey());
+                    mediaAssetRepository.delete(mediaAsset);
+                });
+
+        user.setProfilePicture(null);
+        userRepository.save(user);
     }
 
     private ThumbnailData createThumbnail(byte[] originalBytes, String originalContentType, String originalExtension) {

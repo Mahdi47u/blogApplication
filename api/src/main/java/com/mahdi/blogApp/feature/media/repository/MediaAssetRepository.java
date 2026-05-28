@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface MediaAssetRepository extends JpaRepository<MediaAssetEntity, Long> {
 
     Optional<MediaAssetEntity> findTopByPostIdAndMediaTypeOrderByCreatedAtDesc(Long postId, MediaType mediaType);
+
+    Optional<MediaAssetEntity> findTopByOwnerIdAndMediaTypeOrderByCreatedAtDesc(Long ownerId, MediaType mediaType);
 }

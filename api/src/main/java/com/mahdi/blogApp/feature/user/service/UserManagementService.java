@@ -3,6 +3,7 @@ package com.mahdi.blogApp.feature.user.service;
 import com.mahdi.blogApp.feature.user.entity.Role;
 import com.mahdi.blogApp.feature.user.mapper.UserMapper;
 import com.mahdi.blogApp.feature.user.model.ChangePasswordRequest;
+import com.mahdi.blogApp.feature.user.model.ProfileResponse;
 import com.mahdi.blogApp.feature.user.model.UserModel;
 import com.mahdi.blogApp.feature.user.repository.UserRepository;
 import com.mahdi.blogApp.feature.user.validator.UserValidator;
@@ -66,6 +67,12 @@ public class UserManagementService {
     public Optional<UserModel> getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(userMapper::toModel);
+    }
+
+    public ProfileResponse getProfileByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(userMapper::toProfileResponse)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @Transactional
@@ -136,26 +143,26 @@ public class UserManagementService {
     }
 
     @Transactional
-    public UserModel updateBio(String username, String bio) {
+    public ProfileResponse updateBio(String username, String bio) {
 
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setBio(bio);
 
-        return userMapper.toModel(userRepository.save(user));
+        return userMapper.toProfileResponse(userRepository.save(user));
     }
 
 
     @Transactional
-    public UserModel updateProfilePicture(String username, String imageUrl) {
+    public ProfileResponse updateProfilePictureUrl(String username, String imageUrl) {
 
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setProfilePicture(imageUrl);
 
-        return userMapper.toModel(userRepository.save(user));
+        return userMapper.toProfileResponse(userRepository.save(user));
     }
 
 
