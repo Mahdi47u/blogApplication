@@ -351,10 +351,44 @@ uploads/screenshots/
 
 Current examples:
 
+### Home
+
 ![Home Page](uploads/screenshots/home_page.png)
 ![Home Page 2](uploads/screenshots/home_page2.png)
-![Post Details](uploads/screenshots/post_details.png)
+
+### Post Details
+
+![Post Details](uploads/screenshots/postdetail_page.png)
+![Post Details Comments](uploads/screenshots/postdetail_page2.png)
+![Post Details More](uploads/screenshots/postdetail_page3.png)
+
+### Create Post
+
+![Create Post](uploads/screenshots/createPost_page.png)
+
+### Saved Posts
+
+![Saved Posts](uploads/screenshots/saved_page.png)
+
+### Profile
+
+![Profile Page](uploads/screenshots/profile_page.png)
+![Profile Page 2](uploads/screenshots/profile_page2.png)
+
+### Admin Dashboard
+
+![Dashboard](uploads/screenshots/dashboard_page.png)
+![Dashboard Users](uploads/screenshots/dashboard_page2.png)
+![Dashboard Posts](uploads/screenshots/dashboard_page3.png)
+![Dashboard Categories](uploads/screenshots/dashboard_page4.png)
+
+### Auth and Mobile
+
 ![Login Page](uploads/screenshots/login_page.png)
+![Mobile View](uploads/screenshots/mobile_view.png)
+![Mobile View 2](uploads/screenshots/mobile_view2.png)
+![Mobile View 3](uploads/screenshots/mobile_view3.png)
+![Mobile View 4](uploads/screenshots/mobile_view4.png)
 
 ## Future Improvements
 
