@@ -1,53 +1,81 @@
-// ReplyList.jsx
-
 import { useEffect, useState } from "react";
 import { getReplies } from "../../services/commentService";
+import Button from "../ui/Button";
 import CommentItem from "./CommentItem";
 
-export default function ReplyList({ commentId, postId }) {
+export default function ReplyList({ commentId, postId, depth = 1, refreshKey = 0 }) {
     const [replies, setReplies] = useState([]);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     useEffect(() => {
-        loadReplies();
-    }, [commentId, page]);
+        setReplies([]);
+        setPage(0);
+        setHasMore(true);
+    }, [commentId, refreshKey]);
 
-    async function loadReplies() {
-        const data = await getReplies(commentId, page);
+    useEffect(() => {
+        loadReplies(page);
+    }, [commentId, page, refreshKey]);
 
-        setReplies(prev => {
-            const existingIds = new Set(
-                prev.map(reply => reply.id)
-            );
+    async function loadReplies(nextPage) {
+        try {
+            nextPage === 0 ? setLoading(true) : setLoadingMore(true);
+            const data = await getReplies(commentId, nextPage);
 
-            const uniqueReplies = data.content.filter(
-                reply => !existingIds.has(reply.id)
-            );
+            setReplies((current) => {
+                const existingIds = new Set(current.map((reply) => reply.id));
+                const uniqueReplies = (data.content || []).filter((reply) => !existingIds.has(reply.id));
+                return nextPage === 0 ? data.content || [] : [...current, ...uniqueReplies];
+            });
+            setHasMore(!data.last);
+        } catch (error) {
+            console.error("Failed to load replies:", error);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    }
 
-            return [...prev, ...uniqueReplies];
-        });
+    function onReplyDeleted(replyId) {
+        setReplies((current) => current.filter((reply) => reply.id !== replyId));
+    }
 
-        setHasMore(!data.last);
+    function onReplyUpdated(updatedReply) {
+        setReplies((current) =>
+            current.map((reply) => reply.id === updatedReply.id ? updatedReply : reply)
+        );
     }
 
     return (
-        <div className="ml-6 mt-2 space-y-2">
-            {replies.map(reply => (
+        <div className="ml-8 mt-4 space-y-3 sm:ml-12">
+            {loading && (
+                <div className="h-20 animate-pulse rounded-lg bg-slate-100" />
+            )}
+
+            {!loading && replies.map((reply) => (
                 <CommentItem
                     key={reply.id}
                     comment={reply}
                     postId={postId}
+                    depth={depth}
+                    onDeleted={onReplyDeleted}
+                    onUpdated={onReplyUpdated}
                 />
             ))}
 
-            {hasMore && (
-                <button
-                    onClick={() => setPage(p => p + 1)}
-                    className="text-blue-500 text-sm"
+            {!loading && hasMore && (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPage((value) => value + 1)}
+                    disabled={loadingMore}
                 >
-                    Load more replies
-                </button>
+                    {loadingMore ? "Loading" : "Load more replies"}
+                </Button>
             )}
         </div>
     );

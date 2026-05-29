@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import CategoryBadge from "../categories/CategoryBadge";
 import BookmarkButton from "../bookmarks/BookmarkButton";
+import PostAuthor from "./PostAuthor";
 import { extractRichTextText } from "../../utils/richText";
 
 function PostCard({ post }) {
@@ -52,12 +53,7 @@ function PostCard({ post }) {
 
                 {/* Footer */}
                 <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
-                    <Link
-                        to={`/users/${post.authorId}`}
-                        className="truncate text-slate-500 transition hover:text-blue-600 hover:underline"
-                    >
-                        {post.authorName || "Unknown"}
-                    </Link>
+                    <PostAuthor post={post} />
 
                     <div className="flex shrink-0 items-center gap-2">
                         <BookmarkButton postId={post.id} />

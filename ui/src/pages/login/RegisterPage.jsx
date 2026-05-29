@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
 
@@ -11,24 +11,21 @@ function RegisterPage() {
         email: "",
         password: "",
         confirmPassword: "",
-        agree: false,
+        agree: false
     });
-
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    function handleChange(e) {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === "checkbox" ? checked : value,
+    function handleChange(event) {
+        const { name, value, type, checked } = event.target;
+        setFormData((current) => ({
+            ...current,
+            [name]: type === "checkbox" ? checked : value
         }));
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
+    async function handleSubmit(event) {
+        event.preventDefault();
         setError("");
 
         if (formData.password !== formData.confirmPassword) {
@@ -43,166 +40,133 @@ function RegisterPage() {
 
         try {
             setLoading(true);
-
-            // The backend expects: username, email, password
-            const payload = {
+            await registerUser({
                 username: formData.username,
                 email: formData.email,
-                password: formData.password,
-            };
-
-            await registerUser(payload);
-
-            // After successful register → user is logged in → redirect
+                password: formData.password
+            });
             navigate("/");
-        } catch (err) {
-            setError(err.message || "Registration failed");
+        } catch (error) {
+            setError(error.message || "Registration failed.");
         } finally {
             setLoading(false);
         }
     }
 
     return (
-        <div className="min-h-screen w-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center relative overflow-hidden px-4 py-10">
-            <Link
-                to="/"
-                className="absolute top-6 left-6 text-2xl font-bold text-blue-600 hover:opacity-80 transition"
-            >
-                Blog App
+        <AuthShell title="Create account" subtitle="Start publishing and saving posts.">
+            {error && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Field label="Username">
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                        placeholder="Choose a username"
+                    />
+                </Field>
+
+                <Field label="Email">
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                        placeholder="Enter your email"
+                    />
+                </Field>
+
+                <Field label="Password">
+                    <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                        placeholder="Create a password"
+                    />
+                </Field>
+
+                <Field label="Confirm password">
+                    <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                        placeholder="Confirm your password"
+                    />
+                </Field>
+
+                <label className="flex items-start gap-3 text-sm text-slate-600">
+                    <input
+                        type="checkbox"
+                        name="agree"
+                        checked={formData.agree}
+                        onChange={handleChange}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>I agree to the terms and conditions.</span>
+                </label>
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                >
+                    {loading ? "Creating account" : "Create account"}
+                </button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-slate-600">
+                Already have an account?{" "}
+                <Link to="/login" className="font-medium text-blue-600 hover:underline">
+                    Sign in
+                </Link>
+            </p>
+        </AuthShell>
+    );
+}
+
+function AuthShell({ title, subtitle, children }) {
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+            <Link to="/" className="absolute left-6 top-5 flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
+                    B
+                </span>
+                <span className="font-semibold text-slate-950">Blog App</span>
             </Link>
 
-            <div className="w-full max-w-md rounded-[28px] border border-white/50 bg-white/75 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] p-8 sm:p-10 animate-fadeIn">
-                <div className="mb-8 text-center">
-                    <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex items-center justify-center text-white text-lg font-bold">
-                        BA
-                    </div>
-                    <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-                        Create Account
-                    </h1>
-                    <p className="mt-2 text-sm text-gray-500">
-                        Join and start sharing your posts
-                    </p>
+            <main className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-semibold tracking-normal text-slate-950">{title}</h1>
+                    <p className="mt-2 text-sm text-slate-600">{subtitle}</p>
                 </div>
-
-                {error && (
-                    <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Username */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            placeholder="Choose a username"
-                            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                        />
-                    </div>
-
-                    {/* Email */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            placeholder="Enter your email"
-                            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                        />
-                    </div>
-
-                    {/* Password */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                                placeholder="Create a password"
-                                className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword((prev) => !prev)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                                {showPassword ? "×" : "👁"}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Confirm Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showConfirmPassword ? "text" : "password"}
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                                required
-                                placeholder="Confirm your password"
-                                className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword((prev) => !prev)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                                {showConfirmPassword ? "×" : "👁"}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Terms */}
-                    <label className="flex items-start gap-3 text-sm text-gray-600">
-                        <input
-                            type="checkbox"
-                            name="agree"
-                            checked={formData.agree}
-                            onChange={handleChange}
-                            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span>I agree to the terms and conditions.</span>
-                    </label>
-
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-2xl bg-blue-600 py-3.5 text-white font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:opacity-50"
-                    >
-                        {loading ? "Creating account..." : "Create Account"}
-                    </button>
-                </form>
-
-                <p className="mt-6 text-center text-sm text-gray-600">
-                    Already have an account?{" "}
-                    <Link to="/login" className="font-medium text-blue-600 hover:underline">
-                        Sign in
-                    </Link>
-                </p>
-            </div>
+                {children}
+            </main>
         </div>
+    );
+}
+
+function Field({ label, children }) {
+    return (
+        <label className="block">
+            <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
+            {children}
+        </label>
     );
 }
 

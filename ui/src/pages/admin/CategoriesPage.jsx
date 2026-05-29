@@ -1,13 +1,21 @@
+import AdminSubnav from "../../components/admin/AdminSubnav.jsx";
 import CategoryManager from "../../components/categories/CategoryManager";
+import PageHeader from "../../components/ui/PageHeader.jsx";
 
 export default function CategoriesPage() {
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-6">
-                Category Management
-            </h1>
+        <div className="space-y-6">
+            <AdminSubnav />
 
-            <CategoryManager />
+            <PageHeader
+                eyebrow="Admin"
+                title="Categories"
+                description="Keep the publishing taxonomy clear and easy to browse."
+            />
+
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <CategoryManager />
+            </section>
         </div>
     );
 }

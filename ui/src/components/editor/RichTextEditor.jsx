@@ -9,6 +9,7 @@ import {
     parseRichTextDocument,
     stringifyRichTextDocument
 } from "../../utils/richText";
+import RichTextContent from "./RichTextContent";
 
 const extensions = [
     StarterKit,
@@ -30,6 +31,7 @@ export default function RichTextEditor({ value, onChange }) {
     const fileInputRef = useRef(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [imageError, setImageError] = useState(null);
+    const [mode, setMode] = useState("edit");
 
     const editor = useEditor({
         extensions,
@@ -108,68 +110,99 @@ export default function RichTextEditor({ value, onChange }) {
     }
 
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-blue-500">
-            <div className="flex flex-wrap gap-1 border-b border-gray-200 bg-slate-50 p-2">
-                <ToolbarButton
-                    label="B"
-                    active={editor.isActive("bold")}
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                />
-                <ToolbarButton
-                    label="I"
-                    active={editor.isActive("italic")}
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                />
-                <ToolbarButton
-                    label="H2"
-                    active={editor.isActive("heading", { level: 2 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                />
-                <ToolbarButton
-                    label="H3"
-                    active={editor.isActive("heading", { level: 3 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                />
-                <ToolbarButton
-                    label="List"
-                    active={editor.isActive("bulletList")}
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                />
-                <ToolbarButton
-                    label="1."
-                    active={editor.isActive("orderedList")}
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                />
-                <ToolbarButton
-                    label="Quote"
-                    active={editor.isActive("blockquote")}
-                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                />
-                <ToolbarButton
-                    label="Code"
-                    active={editor.isActive("codeBlock")}
-                    onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                />
-                <ToolbarButton
-                    label="Link"
-                    active={editor.isActive("link")}
-                    onClick={setLink}
-                />
-                <ToolbarButton
-                    label={uploadingImage ? "Uploading" : "Image"}
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingImage}
-                />
-                <ToolbarButton
-                    label="Undo"
-                    onClick={() => editor.chain().focus().undo().run()}
-                    disabled={!editor.can().undo()}
-                />
-                <ToolbarButton
-                    label="Redo"
-                    onClick={() => editor.chain().focus().redo().run()}
-                    disabled={!editor.can().redo()}
-                />
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white focus-within:ring-4 focus-within:ring-blue-100">
+            <div className="flex gap-2 overflow-x-auto border-b border-slate-200 bg-slate-50 p-2 sm:flex-wrap">
+                <div className="flex shrink-0 gap-1 rounded-md border border-slate-200 bg-white p-1">
+                    <ToolbarButton
+                        label="Edit"
+                        active={mode === "edit"}
+                        onClick={() => setMode("edit")}
+                    />
+                    <ToolbarButton
+                        label="Preview"
+                        active={mode === "preview"}
+                        onClick={() => setMode("preview")}
+                    />
+                </div>
+
+                {mode === "edit" && (
+                    <>
+                        <ToolbarGroup>
+                            <ToolbarButton
+                                label="B"
+                                active={editor.isActive("bold")}
+                                onClick={() => editor.chain().focus().toggleBold().run()}
+                            />
+                            <ToolbarButton
+                                label="I"
+                                active={editor.isActive("italic")}
+                                onClick={() => editor.chain().focus().toggleItalic().run()}
+                            />
+                        </ToolbarGroup>
+
+                        <ToolbarGroup>
+                            <ToolbarButton
+                                label="H2"
+                                active={editor.isActive("heading", { level: 2 })}
+                                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                            />
+                            <ToolbarButton
+                                label="H3"
+                                active={editor.isActive("heading", { level: 3 })}
+                                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                            />
+                        </ToolbarGroup>
+
+                        <ToolbarGroup>
+                            <ToolbarButton
+                                label="List"
+                                active={editor.isActive("bulletList")}
+                                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                            />
+                            <ToolbarButton
+                                label="1."
+                                active={editor.isActive("orderedList")}
+                                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                            />
+                            <ToolbarButton
+                                label="Quote"
+                                active={editor.isActive("blockquote")}
+                                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                            />
+                            <ToolbarButton
+                                label="Code"
+                                active={editor.isActive("codeBlock")}
+                                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                            />
+                        </ToolbarGroup>
+
+                        <ToolbarGroup>
+                            <ToolbarButton
+                                label="Link"
+                                active={editor.isActive("link")}
+                                onClick={setLink}
+                            />
+                            <ToolbarButton
+                                label={uploadingImage ? "Uploading" : "Image"}
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploadingImage}
+                            />
+                        </ToolbarGroup>
+
+                        <ToolbarGroup>
+                            <ToolbarButton
+                                label="Undo"
+                                onClick={() => editor.chain().focus().undo().run()}
+                                disabled={!editor.can().undo()}
+                            />
+                            <ToolbarButton
+                                label="Redo"
+                                onClick={() => editor.chain().focus().redo().run()}
+                                disabled={!editor.can().redo()}
+                            />
+                        </ToolbarGroup>
+                    </>
+                )}
             </div>
 
             <input
@@ -186,7 +219,21 @@ export default function RichTextEditor({ value, onChange }) {
                 </div>
             )}
 
-            <EditorContent editor={editor} />
+            {mode === "preview" ? (
+                <div className="min-h-[260px] px-4 py-3">
+                    <RichTextContent value={stringifyRichTextDocument(editor.getJSON())} />
+                </div>
+            ) : (
+                <EditorContent editor={editor} />
+            )}
+        </div>
+    );
+}
+
+function ToolbarGroup({ children }) {
+    return (
+        <div className="flex shrink-0 gap-1 rounded-md border border-slate-200 bg-white p-1">
+            {children}
         </div>
     );
 }
@@ -197,7 +244,7 @@ function ToolbarButton({ label, active = false, disabled = false, onClick }) {
             type="button"
             disabled={disabled}
             onClick={onClick}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40
+            className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40
                 ${
                 active
                     ? "bg-blue-600 text-white"

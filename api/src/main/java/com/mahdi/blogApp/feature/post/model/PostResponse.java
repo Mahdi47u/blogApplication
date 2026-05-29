@@ -26,6 +26,8 @@ public class PostResponse {
 
     private String authorName;
 
+    private String authorAvatar;
+
     private Set<String> categories;
 
     private LocalDateTime createdAt;

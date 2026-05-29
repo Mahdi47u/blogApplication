@@ -1,6 +1,12 @@
 import { useContext, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
+import AdminSubnav from "../../components/admin/AdminSubnav.jsx";
 import { apiFetch } from "../../utils/api";
+import Badge from "../../components/ui/Badge.jsx";
+import Button from "../../components/ui/Button.jsx";
+import PageHeader from "../../components/ui/PageHeader.jsx";
+import { EmptyState, ErrorState } from "../../components/ui/StateBlock.jsx";
 
 const ROLES = ["USER", "ADMIN", "SUPERADMIN"];
 
@@ -18,6 +24,7 @@ export default function AdminUsersPage() {
     const [error, setError] = useState(null);
     const [createError, setCreateError] = useState(null);
     const [actionId, setActionId] = useState(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [creatingAdmin, setCreatingAdmin] = useState(false);
 
     useEffect(() => {
@@ -40,13 +47,17 @@ export default function AdminUsersPage() {
     }
 
     async function deleteUser(id) {
-        if (!confirm("Delete this user? This action cannot be undone.")) return;
+        if (confirmDeleteId !== id) {
+            setConfirmDeleteId(id);
+            return;
+        }
 
         try {
             setActionId(id);
             await apiFetch(`http://localhost:8080/api/admin/users/${id}`, {
                 method: "DELETE"
             });
+            setConfirmDeleteId(null);
             await loadUsers();
         } catch (error) {
             console.error("Failed to delete user:", error);
@@ -115,41 +126,52 @@ export default function AdminUsersPage() {
 
     return (
         <div className="space-y-6">
-            <header className="flex flex-col gap-3 border-b border-slate-200 pb-6 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <p className="text-sm font-medium text-blue-600">Admin</p>
-                    <h1 className="mt-1 text-3xl font-semibold text-slate-950">
-                        User Management
-                    </h1>
-                    <p className="mt-2 text-sm text-slate-600">
-                        Review accounts, change roles, and remove unsafe users.
-                    </p>
+            <AdminSubnav />
+
+            <PageHeader
+                eyebrow="Admin"
+                title="User Management"
+                description="Review accounts, change roles, and remove unsafe users."
+                meta={<p className="text-sm text-slate-500">{filteredUsers.length} of {users.length} users</p>}
+            />
+
+            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-sm font-semibold text-slate-950">Filters</h2>
+                    {(search || roleFilter !== "ALL") && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSearch("");
+                                setRoleFilter("ALL");
+                            }}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                            Clear
+                        </button>
+                    )}
                 </div>
 
-                <p className="text-sm text-slate-500">
-                    {filteredUsers.length} of {users.length} users
-                </p>
-            </header>
+                <div className="grid gap-3 md:grid-cols-[minmax(0,360px)_220px]">
+                    <input
+                        type="search"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Search username or email..."
+                        className="form-input"
+                    />
 
-            <section className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
-                <input
-                    type="search"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search username or email..."
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 md:max-w-sm"
-                />
-
-                <select
-                    value={roleFilter}
-                    onChange={(event) => setRoleFilter(event.target.value)}
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                >
-                    <option value="ALL">All roles</option>
-                    {ROLES.map((role) => (
-                        <option key={role} value={role}>{role}</option>
-                    ))}
-                </select>
+                    <select
+                        value={roleFilter}
+                        onChange={(event) => setRoleFilter(event.target.value)}
+                        className="form-input"
+                    >
+                        <option value="ALL">All roles</option>
+                        {ROLES.map((role) => (
+                            <option key={role} value={role}>{role}</option>
+                        ))}
+                    </select>
+                </div>
             </section>
 
             {isSuperAdmin && (
@@ -176,7 +198,7 @@ export default function AdminUsersPage() {
                                 username: event.target.value
                             }))}
                             placeholder="Username"
-                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            className="form-input"
                             required
                         />
                         <input
@@ -187,7 +209,7 @@ export default function AdminUsersPage() {
                                 email: event.target.value
                             }))}
                             placeholder="Email"
-                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            className="form-input"
                             required
                         />
                         <input
@@ -199,35 +221,51 @@ export default function AdminUsersPage() {
                             }))}
                             placeholder="Password"
                             minLength={6}
-                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            className="form-input"
                             required
                         />
-                        <button
+                        <Button
                             type="submit"
                             disabled={creatingAdmin}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
                         >
                             {creatingAdmin ? "Creating" : "Create Admin"}
-                        </button>
+                        </Button>
                     </form>
                 </section>
             )}
 
             {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {error}
-                </div>
+                <ErrorState message={error} />
             )}
 
             <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
                 {loading ? (
                     <div className="p-6 text-sm text-slate-600">Loading users...</div>
                 ) : filteredUsers.length === 0 ? (
-                    <div className="p-6 text-sm text-slate-600">No users found.</div>
+                    <div className="p-4">
+                        <EmptyState title="No users found" description="Adjust the search or role filter." />
+                    </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                    <div className="divide-y divide-slate-100 md:hidden">
+                        {filteredUsers.map((user) => (
+                            <UserMobileCard
+                                key={user.id}
+                                user={user}
+                                currentUser={currentUser}
+                                isSuperAdmin={isSuperAdmin}
+                                actionId={actionId}
+                                confirmDeleteId={confirmDeleteId}
+                                setConfirmDeleteId={setConfirmDeleteId}
+                                onDelete={deleteUser}
+                                onRoleChange={changeRole}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="w-full min-w-[820px] text-left text-sm">
-                            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+                            <thead className="sticky top-0 border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
                             <tr>
                                 <th className="px-4 py-3 font-semibold">User</th>
                                 <th className="px-4 py-3 font-semibold">Roles</th>
@@ -242,6 +280,9 @@ export default function AdminUsersPage() {
                                     <td className="px-4 py-4">
                                         <p className="font-medium text-slate-950">{user.username}</p>
                                         <p className="text-slate-500">{user.email}</p>
+                                        <Link to={`/users/${user.id}`} className="mt-1 inline-block text-xs font-medium text-blue-600 hover:underline">
+                                            View profile
+                                        </Link>
                                     </td>
                                     <td className="px-4 py-4">
                                         <div className="flex flex-wrap gap-2">
@@ -251,13 +292,9 @@ export default function AdminUsersPage() {
                                         </div>
                                     </td>
                                     <td className="px-4 py-4">
-                                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                            user.enabled
-                                                ? "bg-emerald-50 text-emerald-700"
-                                                : "bg-slate-100 text-slate-600"
-                                        }`}>
+                                        <Badge tone={user.enabled ? "success" : "default"}>
                                             {user.enabled ? "Active" : "Disabled"}
-                                        </span>
+                                        </Badge>
                                     </td>
                                     <td className="px-4 py-4 text-slate-500">
                                         {formatDate(user.createdAt)}
@@ -285,10 +322,23 @@ export default function AdminUsersPage() {
                                                 type="button"
                                                 onClick={() => deleteUser(user.id)}
                                                 disabled={actionId === user.id || !canDeleteUser(currentUser, user)}
-                                                className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                className={`rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                                                    confirmDeleteId === user.id
+                                                        ? "border-red-600 bg-red-600 text-white hover:bg-red-700"
+                                                        : "border-red-200 text-red-600 hover:bg-red-50"
+                                                }`}
                                             >
-                                                Delete
+                                                {confirmDeleteId === user.id ? "Confirm" : "Delete"}
                                             </button>
+                                            {confirmDeleteId === user.id && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -296,23 +346,95 @@ export default function AdminUsersPage() {
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
             </section>
         </div>
     );
 }
 
+function UserMobileCard({
+    user,
+    currentUser,
+    isSuperAdmin,
+    actionId,
+    confirmDeleteId,
+    setConfirmDeleteId,
+    onDelete,
+    onRoleChange
+}) {
+    return (
+        <div className="space-y-4 p-4">
+            <div>
+                <p className="font-medium text-slate-950">{user.username}</p>
+                <p className="mt-1 break-all text-sm text-slate-500">{user.email}</p>
+                <Link to={`/users/${user.id}`} className="mt-2 inline-block text-sm font-medium text-blue-600 hover:underline">
+                    View profile
+                </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+                {user.roles?.map((role) => (
+                    <RoleBadge key={role} role={role} />
+                ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                    <p className="text-xs font-medium uppercase text-slate-400">Status</p>
+                    <p className="mt-1 text-slate-700">{user.enabled ? "Active" : "Disabled"}</p>
+                </div>
+                <div>
+                    <p className="text-xs font-medium uppercase text-slate-400">Joined</p>
+                    <p className="mt-1 text-slate-700">{formatDate(user.createdAt)}</p>
+                </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+                <select
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
+                    value={user.roles?.[0] || "USER"}
+                    onChange={(event) => onRoleChange(user.id, event.target.value)}
+                    disabled={actionId === user.id || !canChangeRole(currentUser, user, isSuperAdmin)}
+                >
+                    {ROLES.map((role) => (
+                        <option
+                            key={role}
+                            value={role}
+                            disabled={!isSuperAdmin && role !== "USER"}
+                        >
+                            {role}
+                        </option>
+                    ))}
+                </select>
+
+                <button
+                    type="button"
+                    onClick={() => onDelete(user.id)}
+                    disabled={actionId === user.id || !canDeleteUser(currentUser, user)}
+                    className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {confirmDeleteId === user.id ? "Confirm delete" : "Delete"}
+                </button>
+                {confirmDeleteId === user.id && (
+                    <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function RoleBadge({ role }) {
-    const tone = role === "SUPERADMIN"
-        ? "bg-purple-50 text-purple-700"
-        : role === "ADMIN"
-            ? "bg-blue-50 text-blue-700"
-            : "bg-slate-100 text-slate-700";
+    const tone = role === "SUPERADMIN" ? "purple" : role === "ADMIN" ? "brand" : "default";
 
     return (
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone}`}>
-            {role}
-        </span>
+        <Badge tone={tone}>{role}</Badge>
     );
 }
 

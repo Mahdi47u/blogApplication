@@ -5,7 +5,27 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        brand: {
+          50: "#eff6ff",
+          100: "#dbeafe",
+          600: "#2563eb",
+          700: "#1d4ed8",
+        },
+        surface: {
+          page: "#f8fafc",
+          panel: "#ffffff",
+          muted: "#f1f5f9",
+        },
+      },
+      borderRadius: {
+        app: "0.5rem",
+      },
+      boxShadow: {
+        panel: "0 1px 2px rgba(15, 23, 42, 0.05)",
+      },
+    },
   },
   plugins: [],
 }

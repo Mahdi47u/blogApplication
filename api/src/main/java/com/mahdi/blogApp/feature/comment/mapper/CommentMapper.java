@@ -13,5 +13,6 @@ public interface CommentMapper {
     @Mapping(target = "parentId", source = "parent.id")
     @Mapping(target = "authorId", source = "user.id")
     @Mapping(target = "authorUsername", source = "user.username")
+    @Mapping(target = "authorAvatar", source = "user.profilePicture")
     CommentModel toModel(CommentEntity commentEntity);
 }

@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getAllPosts, searchPosts } from "../services/postService";
 import { getCategories } from "../services/categoryService";
 import PostCard from "../components/posts/PostCard.jsx";
+import Button from "../components/ui/Button.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx";
+import SectionCard from "../components/ui/SectionCard.jsx";
+import StatCard from "../components/ui/StatCard.jsx";
+import { EmptyState, ErrorState, GridSkeleton } from "../components/ui/StateBlock.jsx";
+import { extractRichTextText } from "../utils/richText.js";
+import { Link } from "react-router-dom";
 
 function HomePage() {
     const [posts, setPosts] = useState([]);
@@ -23,9 +30,7 @@ function HomePage() {
         try {
             setLoadingCategories(true);
             setCategoryError(null);
-
-            const data = await getCategories();
-            setCategories(data || []);
+            setCategories(await getCategories() || []);
         } catch (error) {
             console.error("Error loading categories:", error);
             setCategoryError("Categories could not be loaded.");
@@ -40,15 +45,13 @@ function HomePage() {
             setError(null);
 
             const normalizedQuery = query.trim();
-            const data = normalizedQuery
-                ? await searchPosts(normalizedQuery)
-                : await getAllPosts();
+            const data = normalizedQuery ? await searchPosts(normalizedQuery) : await getAllPosts();
 
             setPosts(data.content || data || []);
             setActiveSearch(normalizedQuery);
         } catch (error) {
             console.error("Error loading posts:", error);
-            setError(query ? "Search failed. Please try again." : "Failed to load posts. Please try again later.");
+            setError(query ? "Search failed. Please try again." : "Failed to load posts.");
         } finally {
             setLoading(false);
         }
@@ -64,13 +67,12 @@ function HomePage() {
         loadPosts();
     }
 
-    // Category filtering stays client-side; text search is handled by the API.
-    const filteredPosts = posts.filter((post) => {
+    const filteredPosts = useMemo(() => posts.filter((post) => {
         if (!selectedCategory) {
             return true;
         }
 
-        const matchCategory = post.categories?.some((category) => {
+        return post.categories?.some((category) => {
             if (typeof category === "string") {
                 return category.toLowerCase() === selectedCategory.name.toLowerCase();
             }
@@ -81,133 +83,160 @@ function HomePage() {
                 category.name?.toLowerCase() === selectedCategory.name.toLowerCase()
             );
         });
+    }), [posts, selectedCategory]);
 
-        return matchCategory;
-    });
+    const featuredPost = !activeSearch && !selectedCategory ? filteredPosts[0] : null;
+    const gridPosts = featuredPost ? filteredPosts.slice(1) : filteredPosts;
+    const title = activeSearch
+        ? `Results for "${activeSearch}"`
+        : selectedCategory
+            ? selectedCategory.name
+            : "Latest posts";
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-10">
-            {/* Hero Section */}
-            <div className="max-w-4xl mx-auto text-center mb-12 animate-fadeIn">
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-                    Welcome Back
-                </h1>
-                <p className="mt-3 text-gray-600 text-lg">
-                    Explore recent posts and discover fresh content.
-                </p>
-            </div>
+        <div className="space-y-7">
+            <PageHeader
+                eyebrow="Discover"
+                title="Read what is new"
+                description="Search the archive, browse categories, and save useful posts for later."
+                meta={
+                    <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
+                        <StatCard label="Posts" value={posts.length} className="min-w-32 shadow-none" />
+                        <StatCard label="Categories" value={categories.length} className="min-w-32 shadow-none" />
+                    </div>
+                }
+            />
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-8">
-                <div className="rounded-xl bg-white border border-slate-200 shadow-sm px-4 py-3 flex items-center gap-3 transition focus-within:ring-4 focus-within:ring-blue-100">
-                    <span className="text-gray-500 text-sm font-medium" aria-hidden="true">
-                        Search
-                    </span>
-                    <input
-                        type="text"
-                        placeholder="Search by title or content..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-transparent outline-none text-gray-700 placeholder-gray-400"
-                    />
-                    {activeSearch && (
-                        <button
-                            type="button"
-                            onClick={clearSearch}
-                            className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-100 transition"
-                        >
-                            Clear
-                        </button>
+            <SectionCard title="Find posts" description="Search title and content, then narrow the feed by category.">
+                <form onSubmit={handleSearchSubmit} className="flex flex-col gap-3 lg:flex-row">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 transition focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-100">
+                        <span className="text-sm font-medium text-slate-500">Search</span>
+                        <input
+                            type="search"
+                            placeholder="Search by title or content..."
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        {activeSearch && (
+                            <Button type="button" onClick={clearSearch} variant="secondary" className="flex-1 sm:flex-none">
+                                Clear
+                            </Button>
+                        )}
+                        <Button type="submit" disabled={loading} className="flex-1 sm:flex-none">
+                            Search
+                        </Button>
+                    </div>
+                </form>
+
+                <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+                    <CategoryFilterButton active={!selectedCategory} onClick={() => setSelectedCategory(null)}>
+                        All
+                    </CategoryFilterButton>
+
+                    {loadingCategories && (
+                        <span className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500">
+                            Loading categories
+                        </span>
                     )}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 transition"
-                    >
-                        {loading ? "Searching" : "Search"}
-                    </button>
-                </div>
-            </form>
 
-            {/* Categories */}
-            <div className="max-w-3xl mx-auto flex gap-3 overflow-x-auto pb-2 mb-10 no-scrollbar">
-                <button
-                    type="button"
-                    onClick={() => setSelectedCategory(null)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap shadow-sm transition
-                        ${
-                        !selectedCategory
-                            ? "bg-blue-600 text-white shadow-blue-600/30"
-                            : "bg-white/70 border border-white/40 text-gray-700 hover:bg-white"
-                    }`}
-                >
-                    All
-                </button>
-
-                {loadingCategories && (
-                    <span className="px-4 py-2 text-sm text-gray-500">
-                        Loading categories...
-                    </span>
-                )}
-
-                {!loadingCategories && categories.map((category) => (
-                    <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => setSelectedCategory(category)}
-                        className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap shadow-sm transition
-                            ${
-                            selectedCategory?.id === category.id
-                                ? "bg-blue-600 text-white shadow-blue-600/30"
-                                : "bg-white/70 border border-white/40 text-gray-700 hover:bg-white"
-                        }`}
-                    >
-                        {category.name}
-                    </button>
-                ))}
-            </div>
-
-            {categoryError && (
-                <p className="mx-auto mb-6 max-w-3xl text-sm text-red-500">
-                    {categoryError}
-                </p>
-            )}
-
-            {/* Section Title */}
-            <h2 className="text-2xl font-semibold mb-6 text-gray-900">
-                {activeSearch ? `Search results for "${activeSearch}"` : "Recent Posts"}
-            </h2>
-
-            {/* Loading */}
-            {loading && (
-                <p className="text-gray-600 animate-pulse">Loading posts...</p>
-            )}
-
-            {/* Error */}
-            {error && (
-                <p className="text-red-500">{error}</p>
-            )}
-
-            {/* No posts */}
-            {!loading && !error && filteredPosts.length === 0 && (
-                <p className="text-gray-600">No posts found.</p>
-            )}
-
-            {/* Posts Grid */}
-            {!loading && !error && filteredPosts.length > 0 && (
-                <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredPosts.map((post, i) => (
-                        <div
-                            key={post.id}
-                            className="animate-slideUp"
-                            style={{ animationDelay: `${i * 0.08}s` }}
+                    {!loadingCategories && categories.map((category) => (
+                        <CategoryFilterButton
+                            key={category.id}
+                            active={selectedCategory?.id === category.id}
+                            onClick={() => setSelectedCategory(category)}
                         >
-                            <PostCard post={post} />
-                        </div>
+                            {category.name}
+                        </CategoryFilterButton>
                     ))}
                 </div>
+
+                {categoryError && (
+                    <div className="mt-4">
+                        <ErrorState message={categoryError} />
+                    </div>
+                )}
+            </SectionCard>
+
+            {featuredPost && (
+                <section className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_360px]">
+                    <div className="min-w-0">
+                        <p className="text-sm font-medium text-blue-600">Featured latest</p>
+                        <h2 className="mt-2 text-2xl font-semibold leading-tight text-slate-950">
+                            {featuredPost.title}
+                        </h2>
+                        <p className="mt-3 line-clamp-3 max-w-3xl text-sm leading-6 text-slate-600">
+                            {extractRichTextText(featuredPost.content) || "No description available."}
+                        </p>
+                        <Button as={Link} to={`/posts/${featuredPost.id}`} className="mt-5">
+                            Read featured
+                        </Button>
+                    </div>
+
+                    {(featuredPost.thumbnailUrl || featuredPost.coverImageUrl) && (
+                        <Link to={`/posts/${featuredPost.id}`} className="overflow-hidden rounded-lg bg-slate-100">
+                            <img
+                                src={featuredPost.thumbnailUrl || featuredPost.coverImageUrl}
+                                alt={featuredPost.title}
+                                className="h-56 w-full object-cover transition duration-300 hover:scale-105"
+                            />
+                        </Link>
+                    )}
+                </section>
             )}
+
+            <section className="space-y-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold text-slate-950">{title}</h2>
+                        <p className="text-sm text-slate-500">
+                            {filteredPosts.length} {filteredPosts.length === 1 ? "post" : "posts"}
+                        </p>
+                    </div>
+                </div>
+
+                {loading && <GridSkeleton />}
+
+                {!loading && error && (
+                    <ErrorState message={error} />
+                )}
+
+                {!loading && !error && filteredPosts.length === 0 && (
+                    <EmptyState
+                        title="No posts found"
+                        description="Try a different search term or reset the category filter."
+                        action={<Button type="button" onClick={clearSearch} variant="secondary">Reset feed</Button>}
+                    />
+                )}
+
+                {!loading && !error && gridPosts.length > 0 && (
+                    <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
+                        {gridPosts.map((post) => (
+                            <PostCard key={post.id} post={post} />
+                        ))}
+                    </div>
+                )}
+            </section>
         </div>
+    );
+}
+
+function CategoryFilterButton({ active, children, onClick }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`whitespace-nowrap rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                active
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+        >
+            {children}
+        </button>
     );
 }
 

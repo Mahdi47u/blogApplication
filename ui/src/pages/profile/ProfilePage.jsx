@@ -1,19 +1,34 @@
 import { useEffect, useState, useContext } from "react";
-import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { apiFetch } from "../../utils/api.js";
 import { removeProfileImage, uploadProfileImage } from "../../services/mediaService.js";
-import { extractRichTextText } from "../../utils/richText.js";
+import { getSavedPostCount, getSavedPosts } from "../../services/bookmarkService.js";
+import Badge from "../../components/ui/Badge.jsx";
+import Button from "../../components/ui/Button.jsx";
+import SectionCard from "../../components/ui/SectionCard.jsx";
+import Tabs from "../../components/ui/Tabs.jsx";
+import { EmptyState, ErrorState, GridSkeleton } from "../../components/ui/StateBlock.jsx";
+import ProfileHeader from "../../components/profile/ProfileHeader.jsx";
+import PostCard from "../../components/posts/PostCard.jsx";
+
+const tabs = [
+    { id: "posts", label: "Posts" },
+    { id: "saved", label: "Saved" },
+    { id: "about", label: "About" },
+];
 
 export default function ProfilePage() {
     const { token, updateUser } = useContext(AuthContext);
 
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [savedPosts, setSavedPosts] = useState([]);
     const [postCount, setPostCount] = useState(0);
+    const [savedCount, setSavedCount] = useState(0);
     const [bio, setBio] = useState("");
     const [profilePic, setProfilePic] = useState(null);
     const [profilePreview, setProfilePreview] = useState("");
+    const [activeTab, setActiveTab] = useState("posts");
     const [loading, setLoading] = useState(true);
     const [savingBio, setSavingBio] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -31,10 +46,12 @@ export default function ProfilePage() {
             setLoading(true);
             setError(null);
 
-            const [userData, postsData, countData] = await Promise.all([
+            const [userData, postsData, countData, savedData, savedCountData] = await Promise.all([
                 apiFetch("http://localhost:8080/api/users/me"),
                 apiFetch("http://localhost:8080/api/posts/me?page=0&size=20"),
-                apiFetch("http://localhost:8080/api/posts/me/count")
+                apiFetch("http://localhost:8080/api/posts/me/count"),
+                getSavedPosts(0, 20),
+                getSavedPostCount(),
             ]);
 
             setUser(userData);
@@ -43,6 +60,8 @@ export default function ProfilePage() {
             setProfilePreview(userData.profilePicture || "");
             setPosts(postsData.content || []);
             setPostCount(countData);
+            setSavedPosts(normalizeSavedPosts(savedData));
+            setSavedCount(savedCountData);
         } catch (error) {
             console.error("Failed to load profile:", error);
             setError("Profile could not be loaded.");
@@ -129,119 +148,80 @@ export default function ProfilePage() {
     }
 
     if (!user) {
-        return (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-red-700">
-                {error || "Profile not found."}
-            </div>
-        );
+        return <ErrorState message={error || "Profile not found."} />;
     }
 
+    const roleBadges = user.roles?.map((role) => ({
+        label: role,
+        tone: role === "SUPERADMIN" ? "purple" : role === "ADMIN" ? "brand" : "default",
+    })) || [];
+
     return (
-        <div className="space-y-8">
-            <header className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-5">
-                        <Avatar user={user} preview={profilePreview} />
-
-                        <div>
-                            <h1 className="text-3xl font-semibold text-slate-950">{user.username}</h1>
-                            <p className="mt-1 text-slate-500">{user.email}</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {user.roles?.map((role) => (
-                                    <RoleBadge key={role} role={role} />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-right">
-                        <div>
-                            <p className="text-2xl font-semibold text-slate-950">{postCount}</p>
-                            <p className="text-sm text-slate-500">Posts</p>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-semibold text-slate-950">
-                                {formatDate(user.createdAt)}
-                            </p>
-                            <p className="text-sm text-slate-500">Joined</p>
-                        </div>
-                    </div>
-                </div>
-
-                <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-700">
-                    {user.bio || "No bio yet."}
-                </p>
-            </header>
+        <div className="space-y-6">
+            <ProfileHeader
+                username={user.username}
+                avatarUrl={profilePreview}
+                subtitle={user.email}
+                bio={user.bio}
+                badges={roleBadges}
+                stats={[
+                    { label: "Posts", value: postCount },
+                    { label: "Saved", value: savedCount },
+                    { label: "Joined", value: formatDate(user.createdAt) },
+                ]}
+            />
 
             {message && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                <Badge tone="success" className="rounded-lg px-4 py-3">
                     {message}
-                </div>
+                </Badge>
             )}
 
-            {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {error}
-                </div>
+            {error && <ErrorState message={error} />}
+
+            <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+
+            {activeTab === "posts" && (
+                <PostsGrid
+                    posts={posts}
+                    emptyTitle="No posts yet"
+                    emptyDescription="Your published posts will appear here."
+                />
             )}
 
-            <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-                <div className="space-y-6">
-                    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                        <h2 className="text-lg font-semibold text-slate-950">Bio</h2>
+            {activeTab === "saved" && (
+                <PostsGrid
+                    posts={savedPosts}
+                    emptyTitle="No saved posts"
+                    emptyDescription="Posts you save will appear here."
+                />
+            )}
+
+            {activeTab === "about" && (
+                <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                    <SectionCard
+                        title="Bio"
+                        description="This bio appears on your public author profile."
+                    >
                         <textarea
-                            className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                            rows="5"
+                            className="form-input min-h-36 w-full resize-y"
                             value={bio}
                             onChange={(event) => setBio(event.target.value)}
                             placeholder="Write a short bio..."
                         />
 
-                        <button
-                            onClick={updateBio}
-                            disabled={savingBio}
-                            className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-                        >
-                            {savingBio ? "Saving" : "Save Bio"}
-                        </button>
-                    </div>
-
-                    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-slate-950">My Posts</h2>
-                            <span className="text-sm text-slate-500">{postCount} posts</span>
+                        <div className="mt-4 flex justify-end">
+                            <Button onClick={updateBio} disabled={savingBio}>
+                                {savingBio ? "Saving" : "Save Bio"}
+                            </Button>
                         </div>
+                    </SectionCard>
 
-                        {posts.length === 0 ? (
-                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-                                You have not published any posts yet.
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-slate-100">
-                                {posts.map((post) => (
-                                    <Link
-                                        to={`/posts/${post.id}`}
-                                        key={post.id}
-                                        className="block py-4 transition hover:bg-slate-50"
-                                    >
-                                        <h3 className="font-medium text-slate-950">{post.title}</h3>
-                                        <p className="mt-1 line-clamp-2 text-sm text-slate-600">
-                                            {extractRichTextText(post.content)}
-                                        </p>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 className="text-lg font-semibold text-slate-950">Profile Picture</h2>
-                    <p className="mt-1 text-sm text-slate-600">
-                        Upload a JPG, PNG, or WEBP image. Max 10MB.
-                    </p>
-
-                    <div className="mt-5">
+                    <SectionCard
+                        as="aside"
+                        title="Profile Picture"
+                        description="Upload a JPG, PNG, or WEBP image. Max 10MB."
+                    >
                         <input
                             type="file"
                             accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -254,75 +234,61 @@ export default function ProfilePage() {
                                 hover:file:bg-blue-100
                             "
                         />
-                    </div>
 
-                    <div className="mt-5 flex flex-wrap gap-3">
-                        <button
-                            onClick={updateProfilePicture}
-                            disabled={!profilePic || uploadingImage}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-                        >
-                            {uploadingImage ? "Uploading" : "Upload"}
-                        </button>
-
-                        {user.profilePicture && (
-                            <button
-                                onClick={deleteProfilePicture}
-                                disabled={uploadingImage}
-                                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        <div className="mt-5 flex flex-wrap gap-3">
+                            <Button
+                                onClick={updateProfilePicture}
+                                disabled={!profilePic || uploadingImage}
                             >
-                                Remove
-                            </button>
-                        )}
-                    </div>
-                </aside>
-            </section>
-        </div>
-    );
-}
+                                {uploadingImage ? "Uploading" : "Upload"}
+                            </Button>
 
-function Avatar({ user, preview }) {
-    const initials = user.username?.slice(0, 2).toUpperCase() || "U";
-
-    return (
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-2xl font-semibold text-slate-500">
-            {preview ? (
-                <img
-                    src={preview}
-                    alt={user.username}
-                    className="h-full w-full object-cover"
-                />
-            ) : (
-                initials
+                            {user.profilePicture && (
+                                <Button
+                                    variant="danger"
+                                    onClick={deleteProfilePicture}
+                                    disabled={uploadingImage}
+                                >
+                                    Remove
+                                </Button>
+                            )}
+                        </div>
+                    </SectionCard>
+                </div>
             )}
         </div>
     );
 }
 
-function RoleBadge({ role }) {
-    const tone = role === "SUPERADMIN"
-        ? "bg-purple-50 text-purple-700"
-        : role === "ADMIN"
-            ? "bg-blue-50 text-blue-700"
-            : "bg-slate-100 text-slate-700";
+function PostsGrid({ posts, emptyTitle, emptyDescription }) {
+    if (posts.length === 0) {
+        return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    }
 
     return (
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone}`}>
-            {role}
-        </span>
+        <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+            ))}
+        </div>
     );
 }
 
 function ProfileSkeleton() {
     return (
         <div className="space-y-6">
-            <div className="h-40 animate-pulse rounded-lg bg-slate-100" />
-            <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-                <div className="h-80 animate-pulse rounded-lg bg-slate-100" />
-                <div className="h-80 animate-pulse rounded-lg bg-slate-100" />
-            </div>
+            <div className="h-72 animate-pulse rounded-lg bg-slate-100" />
+            <GridSkeleton />
         </div>
     );
+}
+
+function normalizeSavedPosts(data) {
+    const items = data.content || data || [];
+
+    return items
+        .map((item) => item.post || item)
+        .filter(Boolean);
 }
 
 function formatDate(value) {

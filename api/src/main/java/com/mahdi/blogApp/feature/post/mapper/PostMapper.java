@@ -13,6 +13,7 @@ public interface PostMapper {
 
     @Mapping(source = "author.id", target = "authorId")
     @Mapping(source = "author.username", target = "authorName")
+    @Mapping(source = "author.profilePicture", target = "authorAvatar")
     @Mapping(target = "categories", expression = "java(mapCategoryNames(postEntity.getCategories()))")
     PostResponse toResponse(PostEntity postEntity);
 

@@ -2,6 +2,9 @@ import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { apiFetch } from "../../utils/api.js";
+import AdminSubnav from "../../components/admin/AdminSubnav.jsx";
+import PageHeader from "../../components/ui/PageHeader.jsx";
+import { ErrorState } from "../../components/ui/StateBlock.jsx";
 
 export default function AdminDashboard() {
     const { token } = useContext(AuthContext);
@@ -33,11 +36,7 @@ export default function AdminDashboard() {
     }
 
     if (error) {
-        return (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-5 text-red-700">
-                {error}
-            </div>
-        );
+        return <ErrorState message={error} />;
     }
 
     if (!dashboard) {
@@ -46,21 +45,14 @@ export default function AdminDashboard() {
 
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-3 border-b border-slate-200 pb-6 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <p className="text-sm font-medium text-blue-600">Admin</p>
-                    <h1 className="mt-1 text-3xl font-semibold text-slate-950">
-                        Dashboard
-                    </h1>
-                    <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                        Monitor the blog, review activity, and jump into moderation work.
-                    </p>
-                </div>
+            <AdminSubnav />
 
-                <p className="text-sm text-slate-500">
-                    Updated {formatDateTime(dashboard.generatedAt)}
-                </p>
-            </header>
+            <PageHeader
+                eyebrow="Admin"
+                title="Dashboard"
+                description="Monitor the blog, review activity, and jump into moderation work."
+                meta={<p className="text-sm text-slate-500">Updated {formatDateTime(dashboard.generatedAt)}</p>}
+            />
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 {dashboard.metrics.map((metric) => (

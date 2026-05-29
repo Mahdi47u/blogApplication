@@ -1,40 +1,28 @@
 import { useEffect, useState } from "react";
-import {getPostById, updatePost} from "../../services/postService";
-import { removePostCover, uploadPostCover } from "../../services/mediaService";
-import {useParams, useNavigate, Link} from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import PostForm from "../../components/posts/PostForm";
+import { removePostCover, uploadPostCover } from "../../services/mediaService";
+import { getPostById, updatePost } from "../../services/postService";
 
 function EditPostPage() {
-
     const { id } = useParams();
-
     const navigate = useNavigate();
-
     const [post, setPost] = useState(null);
-
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadPost();
-    }, []);
+    }, [id]);
 
     async function loadPost() {
-
         try {
-
-            const data =
-                await getPostById(id);
-
-            setPost(data);
-
+            setPost(await getPostById(id));
         } finally {
-
             setLoading(false);
         }
     }
 
     async function handleUpdate(data) {
-
         const { coverImage, removeCoverImage, ...postData } = data;
 
         await updatePost(id, postData);
@@ -51,57 +39,31 @@ function EditPostPage() {
     }
 
     if (loading) {
-
-        return (
-            <p className="
-                p-6 text-gray-600 animate-pulse
-            ">
-                Loading post...
-            </p>
-        );
+        return <div className="h-96 animate-pulse rounded-lg bg-slate-100" />;
     }
 
     return (
-        <div className="
-            min-h-screen
-            bg-gradient-to-br
-            from-slate-50 via-blue-50 to-indigo-100
-            px-4 py-10
-        ">
+        <div className="mx-auto max-w-6xl space-y-6">
+            <Link
+                to={`/posts/${id}`}
+                className="inline-flex text-sm font-medium text-slate-500 transition hover:text-blue-600"
+            >
+                Back to Post
+            </Link>
 
-            <div className="max-w-3xl mx-auto animate-fadeIn">
-
-                <Link
-                    to={`/posts/${id}`}
-                    className="
-                        text-blue-600 font-medium
-                        hover:underline mb-6 inline-block
-                    "
-                >
-                    ← Back to Post
-                </Link>
-
-                <div className="
-                    bg-white/60 backdrop-blur-xl
-                    border border-white/40
-                    shadow-xl rounded-3xl p-8
-                ">
-
-                    <h1 className="
-                        text-3xl font-bold
-                        text-gray-900 mb-6
-                    ">
-                        Edit Post
+            <section className="space-y-6">
+                <div className="mb-6">
+                    <p className="text-sm font-medium text-blue-600">Edit</p>
+                    <h1 className="mt-2 text-3xl font-semibold tracking-normal text-slate-950">
+                        Update post
                     </h1>
-
-                    <PostForm
-                        initialData={post}
-                        onSubmit={handleUpdate}
-                        submitText="Save Changes"
-                    />
-
+                    <p className="mt-2 text-sm text-slate-600">
+                        Refine the content, categories, and cover image.
+                    </p>
                 </div>
-            </div>
+
+                <PostForm initialData={post} onSubmit={handleUpdate} submitText="Save Changes" />
+            </section>
         </div>
     );
 }

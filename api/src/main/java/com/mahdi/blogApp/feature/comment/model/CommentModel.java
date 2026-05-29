@@ -18,6 +18,8 @@ public class CommentModel {
 
     private String authorUsername;
 
+    private String authorAvatar;
+
     private LocalDateTime createdAt;
 
     private long likeCount;

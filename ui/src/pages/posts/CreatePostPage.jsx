@@ -1,12 +1,9 @@
-import { createPost } from "../../services/postService";
-import { uploadPostCover } from "../../services/mediaService";
-
-import { useNavigate, Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 import PostForm from "../../components/posts/PostForm";
+import { uploadPostCover } from "../../services/mediaService";
+import { createPost } from "../../services/postService";
 
 function CreatePostPage() {
-
     const navigate = useNavigate();
 
     async function handleCreate(data) {
@@ -18,53 +15,34 @@ function CreatePostPage() {
                 await uploadPostCover(createdPost.id, coverImage);
             }
 
-            navigate("/");
-
+            navigate(`/posts/${createdPost.id}`);
         } catch (error) {
             console.error(error);
         }
     }
 
     return (
-        <div className="
-            min-h-screen
-            bg-gradient-to-br
-            from-slate-50 via-blue-50 to-indigo-100
-            px-4 py-10
-        ">
+        <div className="mx-auto max-w-6xl space-y-6">
+            <Link
+                to="/"
+                className="inline-flex text-sm font-medium text-slate-500 transition hover:text-blue-600"
+            >
+                Back to Home
+            </Link>
 
-            <div className="max-w-3xl mx-auto animate-fadeIn">
-
-                <Link
-                    to="/"
-                    className="
-                        text-blue-600 font-medium
-                        hover:underline mb-6 inline-block
-                    "
-                >
-                    ← Back to Home
-                </Link>
-
-                <div className="
-                    bg-white/60 backdrop-blur-xl
-                    border border-white/40
-                    shadow-xl rounded-3xl p-8
-                ">
-
-                    <h1 className="
-                        text-3xl font-bold
-                        text-gray-900 mb-6
-                    ">
-                        Create New Post
+            <section className="space-y-6">
+                <div className="mb-6">
+                    <p className="text-sm font-medium text-blue-600">Create</p>
+                    <h1 className="mt-2 text-3xl font-semibold tracking-normal text-slate-950">
+                        New post
                     </h1>
-
-                    <PostForm
-                        onSubmit={handleCreate}
-                        submitText="Publish Post"
-                    />
-
+                    <p className="mt-2 text-sm text-slate-600">
+                        Write, categorize, and publish a post with a cover image.
+                    </p>
                 </div>
-            </div>
+
+                <PostForm onSubmit={handleCreate} submitText="Publish Post" />
+            </section>
         </div>
     );
 }

@@ -1,54 +1,61 @@
-// CommentForm.jsx
-
 import { useState } from "react";
+import Button from "../ui/Button";
 import { createComment } from "../../services/commentService";
 
 export default function CommentForm({
-                                        postId,
-                                        parentId,
-                                        onSuccess
-                                    }) {
+    postId,
+    parentId,
+    onSuccess,
+    placeholder = "Write a comment..."
+}) {
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    async function handleSubmit(e) {
-        e.preventDefault();
+    async function handleSubmit(event) {
+        event.preventDefault();
 
-        if (!text.trim()) return;
-
-        setLoading(true);
+        if (!text.trim() || loading) {
+            return;
+        }
 
         try {
+            setLoading(true);
+            setError(null);
+
             const comment = await createComment({
                 postId,
-                text,
+                text: text.trim(),
                 parentId
             });
 
             setText("");
-
             onSuccess?.(comment);
+        } catch (error) {
+            console.error("Failed to post comment:", error);
+            setError("Comment could not be posted.");
         } finally {
             setLoading(false);
         }
     }
 
     return (
-        <form onSubmit={handleSubmit} className="mt-2">
+        <form onSubmit={handleSubmit} className="space-y-3">
             <textarea
                 value={text}
-                onChange={e => setText(e.target.value)}
-                className="w-full border rounded p-2"
+                onChange={(event) => setText(event.target.value)}
+                className="form-input min-h-[96px] resize-y"
                 rows={3}
-                placeholder="Write a comment..."
+                placeholder={placeholder}
             />
 
-            <button
-                disabled={loading}
-                className="mt-2 px-3 py-1 bg-blue-500 text-white rounded"
-            >
-                {loading ? "Posting..." : "Post"}
-            </button>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="flex justify-end">
+                <Button type="submit" disabled={loading || !text.trim()}>
+                    {loading ? "Posting" : parentId ? "Reply" : "Post comment"}
+                </Button>
+            </div>
         </form>
     );
 }

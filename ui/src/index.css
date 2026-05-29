@@ -7,10 +7,10 @@
 --------------------------------------- */
 
 :root {
-  --text: #131212;
-  --text-h: #08060d;
-  --bg: #ffffff;
-  --border: #e5e4e7;
+  --text: #334155;
+  --text-h: #0f172a;
+  --bg: #f8fafc;
+  --border: #e2e8f0;
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
   --accent-bg: rgba(170, 59, 255, 0.1);
@@ -24,8 +24,8 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font: 16px/150% var(--sans);
+  letter-spacing: 0;
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -41,31 +41,6 @@
 
 /* ---------------------------------------
    Dark Theme
---------------------------------------- */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-            rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
-            rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-/* ---------------------------------------
-   Global Resets
 --------------------------------------- */
 
 html,
@@ -103,9 +78,9 @@ h2 {
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
+  font-size: inherit;
+  letter-spacing: 0;
+  margin: 0;
 }
 
 @media (max-width: 1024px) {
@@ -116,10 +91,10 @@ h1 {
 }
 
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+  margin: 0;
 }
 
 @media (max-width: 1024px) {
@@ -198,6 +173,27 @@ input, textarea {
   color-scheme: light !important;
 }
 
+.form-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0.75rem 0.875rem;
+  color: #0f172a;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-input::placeholder {
+  color: #94a3b8;
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+
 .rich-text {
   color: #374151;
   font-size: 1rem;
@@ -239,10 +235,12 @@ input, textarea {
 }
 
 .rich-text blockquote {
-  border-left: 3px solid #2563eb;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
   color: #4b5563;
-  margin: 1rem 0;
-  padding-left: 1rem;
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
 }
 
 .rich-text pre {
@@ -272,7 +270,7 @@ input, textarea {
   border-radius: 0.75rem;
   display: block;
   height: auto;
-  margin: 1rem 0;
+  margin: 1.5rem 0;
   max-height: 520px;
   max-width: 100%;
   object-fit: contain;
@@ -288,4 +286,5 @@ input, textarea {
 
 .rich-text-content {
   font-size: 1.125rem;
+  max-width: 72ch;
 }
