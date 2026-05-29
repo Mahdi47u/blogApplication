@@ -1,199 +1,243 @@
 # Blog Application
 
-A full-stack blog platform built with Spring Boot and React featuring JWT authentication, role-based authorization, secure REST APIs, and a responsive client application.
-
-
+A full-stack blog platform built with Spring Boot, React, PostgreSQL, and MinIO. The app supports rich post creation, media uploads, comments, saved posts, public author profiles, role-based admin tooling, and a polished responsive UI.
 
 ## Table of Contents
 
 - [Tech Stack](#tech-stack)
-- [Screenshots](#screenshots)
 - [Features](#features)
 - [Architecture](#architecture)
-- [Installation & Setup](#installation--setup)
-- [Lessons Learned](#lessons-learned)
+- [Local Setup](#local-setup)
+- [Media Storage](#media-storage)
+- [Roles](#roles)
+- [Useful Commands](#useful-commands)
+- [Screenshots](#screenshots)
 - [Future Improvements](#future-improvements)
-
-
 
 ## Tech Stack
 
 ### Backend
-- Java
+
+- Java 21
 - Spring Boot
 - Spring Security
-- JWT Authentication
+- JWT authentication
 - Spring Data JPA / Hibernate
 - PostgreSQL
+- MinIO Java SDK
+- Thumbnailator
 - MapStruct
 - Lombok
 - Maven
 
 ### Frontend
+
 - React
 - Vite
 - Tailwind CSS
 - React Router
 - Context API
+- TipTap rich text editor
+- React Select
 - Fetch API
 
+### Infrastructure
 
-
-# Screenshots
-![Home Page](uploads/screenshots/home_page.png)
-![Home Page2](uploads/screenshots/home_page2.png)
-![Post Details](uploads/screenshots/post_details.png)
-![Login Page](uploads/screenshots/login_page.png)
-
-
+- PostgreSQL database
+- MinIO object storage
+- Docker Compose for local MinIO
 
 ## Features
 
-### Authentication & Authorization
-- JWT-based authentication with stateless sessions
-- Role-based authorization (USER, ADMIN, SUPERADMIN)
-- Secure password hashing with BCrypt
-- Custom JWT filter integrated into Spring Security filter chain
-- Protected API endpoints aligned with user roles
-- Protected frontend routes using React Router + AuthContext
-- Admin-only routes and admin dashboard protection
+### Authentication and Authorization
 
-### Backend Architecture
-- Feature-based modular structure (auth, user, post, comment, etc.)
-- Layered architecture: Entity → DTO → Mapper → Service → Controller
-- MapStruct for fast DTO ↔ Entity mapping
-- Centralized validation layer
-- Reusable BaseEntity for auditing and consistency
-- Repository layer built on Spring Data JPA & Hibernate
-- Clear separation of business logic and API transport models
+- JWT-based login with stateless backend sessions.
+- Role-based access control for `USER`, `ADMIN`, and `SUPERADMIN`.
+- Protected backend endpoints through Spring Security.
+- Protected frontend routes using React Router and `AuthContext`.
+- Admin-only screens and superadmin-only role management actions.
+- BCrypt password hashing.
 
-### Blog Functionality
-- Create, update, delete, and fetch posts
-- View post details with comments
-- Comment system with create/edit/delete
-- Comment likes support
-- Ownership checks for modifying own posts/comments
-- Public access for browsing posts
-- Authenticated access for write actions
+### Posts
 
-### Frontend Application
-- React SPA with Vite for fast development
-- TailwindCSS for responsive UI design
-- Context-based authentication state management
-- Persistent login using localStorage
-- Centralized API layer using custom `apiFetch` wrapper
-- Admin pages for managing users and posts
-- User profile page
+- Create, edit, delete, and view posts.
+- Rich text editor powered by TipTap.
+- Inline images inside post content.
+- Cover image upload with generated thumbnail.
+- Category assignment with multi-select UI.
+- Search posts by title/content.
+- Category pages with category stats and related category links.
+- Polished post details page with author block, reading time, cover image, and comments.
 
-### Security
-- Fully stateless backend using JWT
-- Custom JwtAuthFilter with token validation
-- UserDetailsService integration for user loading
-- Invalid token and authentication handling
-- CORS configuration for frontend communication
+### Media
 
+- Dedicated media layer for upload behavior.
+- MinIO-backed object storage instead of writing uploads into the project root.
+- Separate upload flows for:
+  - post cover images
+  - post thumbnails
+  - profile avatars
+  - rich text editor images
+- Image validation and compression-oriented upload flow.
+- Multipart upload size configured in Spring.
 
+### Bookmarks / Saved Posts
 
+- Authenticated users can save and unsave posts.
+- Saved posts page works like a personal reading library.
+- Saved count, local search, sorting, and empty states.
 
+### Comments
+
+- Create comments and replies.
+- Edit and delete comments.
+- Like comments.
+- Nested replies with improved UI.
+- Author avatars and public profile links.
+
+### Profiles
+
+- Private profile page for the logged-in user.
+- Public profile page for authors/users.
+- Profile avatar upload and removal.
+- Editable bio.
+- Profile tabs for posts, saved posts, and about.
+- Shared profile header design across private and public profiles.
+
+### Admin
+
+- Admin dashboard.
+- Manage users.
+- Manage posts.
+- Moderate posts.
+- Promote users to admin.
+- Superadmin can add/promote admins.
+- Cleaner admin tables with filters, badges, row actions, and mobile-friendly layouts.
+
+### Frontend UI
+
+- Responsive app shell and navbar.
+- Shared UI components:
+  - `Button`
+  - `Badge`
+  - `PageHeader`
+  - `SectionCard`
+  - `StatCard`
+  - `Tabs`
+  - `EmptyState`
+  - `ErrorState`
+  - `GridSkeleton`
+- Improved home feed, category pages, saved posts, profile pages, post details, comments, and create/edit post flow.
 
 ## Architecture
 
-The project is built with a feature‑oriented and layered architecture on the backend, and a modular component‑based architecture on the frontend.
+The project uses a feature-oriented backend and a modular React frontend.
 
 ### Backend Architecture
 
-The backend follows a **feature‑based package structure**, where each domain (auth, user, post, comment) contains its own:
+The backend is organized by feature. Each feature owns its own package structure, usually including:
+
 - `entity`
-- `dto`
+- `model` / DTOs
 - `mapper`
-- `service`
 - `repository`
-- `validator`
+- `service`
 - `controller`
 
-This keeps the codebase modular and maintainable.
+The common request flow is:
 
-**Layered design:**
+```text
+Controller -> Service -> Repository -> Entity
+            -> Mapper -> Response DTO
+```
 
-Entity → DTO → Mapper → Service → Controller
+Important backend parts:
 
-Additional backend components:
-- `JwtAuthFilter` for token extraction and validation  
-- `JwtService` for signing & verifying JWT tokens  
-- Global `SecurityConfig` for authentication, authorization, and stateless sessions  
-- `PasswordConfig` for BCrypt hashing  
-- CORS & Web configurations  
-- BaseEntity for shared fields (timestamps, id, etc.)
-
-Data persistence:
-- Spring Data JPA repositories with Hibernate
-- PostgreSQL as the primary database
-
----
+- Spring Security config for endpoint protection.
+- JWT filter for token extraction and authentication.
+- Feature services for business logic.
+- MapStruct mappers for entity/DTO conversion.
+- JPA entities and repositories for persistence.
+- Global exception handling.
+- MinIO media service for object storage.
 
 ### Frontend Architecture
 
-The frontend is structured as a modern React SPA using Vite and Tailwind CSS.
+The frontend is a React SPA using route-level pages and reusable components.
 
 Key folders:
-- `components/` — reusable UI components  
-- `pages/` — route‑level screens  
-- `context/` — global state (AuthContext)  
-- `services/` — API clients per feature  
-- `utils/` — helpers like `apiFetch`  
-- `hooks/` — custom hooks  
-- `assets/` — images & static files
 
-Routing:
-- Public routes (home, login, register, post details)
-- Protected routes using `RequireAuth`
-- Role‑protected admin routes using `RequireAdmin`
+- `src/pages` - route-level screens.
+- `src/components` - shared UI and feature components.
+- `src/services` - API clients per feature.
+- `src/context` - authentication state.
+- `src/utils` - shared helpers like `apiFetch` and rich text helpers.
 
-State management:
-- Context API for authentication state
-- Token & user persistence via `localStorage`
+Frontend data flow:
 
-API communication:
-- Custom `apiFetch` wrapper that automatically attaches JWT tokens
-- Per-feature API service modules for clean separation
-
----
-
-### Client–Server Communication
-
-The frontend communicates with the backend via:
-- JSON REST APIs
-- JWT Authorization headers (`Authorization: Bearer <token>`)
-
-Public endpoints:
-- Browse posts
-- View post details & comments
-- Register/Login
-
-Authenticated endpoints:
-- Create/update/delete posts
-- Create/update/delete comments
-- Access profile data
-
-Admin endpoints:
-- Manage users
-- Manage posts
-
----
-
-
-
-# Installation & Setup
-
-### Backend Setup (Spring Boot)
-
-Navigate to the backend directory:
-
-```bash
-cd api/
+```text
+Page -> service function -> backend API
+Page -> shared/feature components -> UI
 ```
 
-Configure your database in `application.properties`:
+Authentication state is stored in `AuthContext` and persisted with `localStorage`.
+
+## Local Setup
+
+### Prerequisites
+
+- Java 21
+- Maven
+- Node.js and npm
+- PostgreSQL
+- Docker Desktop, for MinIO
+
+### 1. Start MinIO
+
+From the project root:
+
+```bash
+docker compose up
+```
+
+MinIO endpoints:
+
+- API: `http://localhost:9000`
+- Console: `http://localhost:9001`
+
+Default local credentials:
+
+```text
+minioadmin / minioadmin
+```
+
+Create a bucket named:
+
+```text
+blog-media
+```
+
+For local public image URLs, the app expects:
+
+```properties
+storage.minio.public-url=http://localhost:9000/blog-media
+```
+
+### 2. Configure PostgreSQL
+
+Create a database named:
+
+```text
+blogdb
+```
+
+Then update backend database credentials in:
+
+```text
+api/src/main/resources/application.properties
+```
+
+Example:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/blogdb
@@ -201,79 +245,126 @@ spring.datasource.username=your_username
 spring.datasource.password=your_password
 ```
 
-Run the application:
+### 3. Run the Backend
 
 ```bash
+cd api
 mvn spring-boot:run
 ```
 
-The backend will start at:
+Backend URL:
 
-```
+```text
 http://localhost:8080
 ```
 
----
-
-### Frontend Setup (React)
-
-Navigate to the frontend directory:
+### 4. Run the Frontend
 
 ```bash
-cd ui/
-```
-
-Install dependencies:
-
-```bash
+cd ui
 npm install
-```
-
-Run the development server:
-
-```bash
 npm run dev
 ```
 
-The frontend will run at:
+Frontend URL:
 
-```
+```text
 http://localhost:5173
 ```
 
+## Media Storage
 
-## Lessons Learned
+Uploads are stored in MinIO, not in the project root. The backend handles media through a dedicated media layer and stores public object URLs on posts/users where needed.
 
-Through building this project, I strengthened my understanding of:
+Configured local properties:
 
-- Designing layered backend architectures with Spring Boot
+```properties
+storage.minio.endpoint=http://localhost:9000
+storage.minio.access-key=minioadmin
+storage.minio.secret-key=minioadmin
+storage.minio.bucket=blog-media
+storage.minio.public-url=http://localhost:9000/blog-media
 
-- Implementing JWT authentication and role-based authorization
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=12MB
+```
 
-- Structuring scalable React applications
+## Roles
 
-- Managing authentication state with Context API
+### USER
 
-- Building protected frontend and backend routes
+- Read posts.
+- Create posts.
+- Edit/delete own posts.
+- Comment and reply.
+- Save posts.
+- Edit own profile.
 
-- Organizing feature-based full-stack applications
+### ADMIN
 
-- Continuing to improve the project through future iterations
+- Access admin dashboard.
+- Manage users.
+- Moderate/manage posts.
 
-  
+### SUPERADMIN
 
+- All admin permissions.
+- Promote users/admins.
+- Add more admins.
 
+## Useful Commands
+
+Backend:
+
+```bash
+cd api
+mvn spring-boot:run
+```
+
+Frontend:
+
+```bash
+cd ui
+npm run dev
+```
+
+Frontend production build:
+
+```bash
+cd ui
+npm run build
+```
+
+MinIO:
+
+```bash
+docker compose up
+```
+
+## Screenshots
+
+Existing screenshots are stored in:
+
+```text
+uploads/screenshots/
+```
+
+Current examples:
+
+![Home Page](uploads/screenshots/home_page.png)
+![Home Page 2](uploads/screenshots/home_page2.png)
+![Post Details](uploads/screenshots/post_details.png)
+![Login Page](uploads/screenshots/login_page.png)
 
 ## Future Improvements
 
-- Media upload support for posts and user profiles
-- Refresh token implementation for improved authentication flow
-- Search and filtering functionality
-- Improved Pagination and infinite scrolling 
-- Email verification and password reset
-- Dockerized deployment setup
-- Automated testing (unit & integration tests)
-- Rich text editor for blog content
-
-
-
+- Backend tests for services, controllers, security, and media flows.
+- Frontend smoke/component tests.
+- Pagination or infinite scrolling across feeds, saved posts, comments, and admin tables.
+- Draft, published, archived, and scheduled post states.
+- Notifications for comments, replies, and moderation events.
+- Refresh token flow.
+- Email verification and password reset completion.
+- Production deployment profile and full-stack Docker setup.
+- Better audit trail for admin moderation actions.
+- Dedicated settings page for profile, avatar, security, and account management.
